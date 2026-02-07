@@ -1,0 +1,101 @@
+package com.example.doggitoapp.android.feature.redeem
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.example.doggitoapp.android.core.theme.*
+import com.example.doggitoapp.android.core.util.DateUtils
+import com.example.doggitoapp.android.domain.model.RedeemCode
+import com.example.doggitoapp.android.domain.model.RedeemStatus
+import org.koin.androidx.compose.koinViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RedeemHistoryScreen(
+    onBack: () -> Unit,
+    viewModel: RedeemViewModel = koinViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Historial de Canjes") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        if (uiState.redeemHistory.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.CardGiftcard, null, Modifier.size(64.dp), tint = DoggitoOrange)
+                    Spacer(Modifier.height(16.dp))
+                    Text("Sin canjes aún")
+                    Text("¡Acumula DoggiCoins y canjea premios!", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(uiState.redeemHistory) { code ->
+                    RedeemHistoryCard(code)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RedeemHistoryCard(redeemCode: RedeemCode) {
+    val statusColor = when (redeemCode.status) {
+        RedeemStatus.ACTIVE -> SuccessGreen
+        RedeemStatus.CLAIMED -> DoggitoTeal
+        RedeemStatus.EXPIRED -> ErrorRed
+    }
+    val statusIcon = when (redeemCode.status) {
+        RedeemStatus.ACTIVE -> Icons.Default.QrCode
+        RedeemStatus.CLAIMED -> Icons.Default.CheckCircle
+        RedeemStatus.EXPIRED -> Icons.Default.Cancel
+    }
+
+    Card(shape = RoundedCornerShape(12.dp)) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(statusIcon, null, tint = statusColor, modifier = Modifier.size(32.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Código: ${redeemCode.code}", fontWeight = FontWeight.SemiBold)
+                Text("Creado: ${DateUtils.formatDate(redeemCode.createdAt)}", style = MaterialTheme.typography.bodySmall)
+                if (redeemCode.status == RedeemStatus.ACTIVE) {
+                    val daysLeft = DateUtils.daysUntil(redeemCode.expiresAt)
+                    Text("Expira en $daysLeft días", style = MaterialTheme.typography.bodySmall, color = if (daysLeft > 7) SuccessGreen else WarningAmber)
+                }
+            }
+            Surface(shape = RoundedCornerShape(8.dp), color = statusColor.copy(alpha = 0.15f)) {
+                Text(
+                    redeemCode.status.displayName,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = statusColor,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
