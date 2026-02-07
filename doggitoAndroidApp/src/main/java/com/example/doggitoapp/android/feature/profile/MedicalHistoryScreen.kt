@@ -11,10 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.doggitoapp.android.core.theme.DoggitoOrange
-import com.example.doggitoapp.android.core.theme.HealthColor
+import com.example.doggitoapp.android.core.theme.*
 import com.example.doggitoapp.android.core.util.DateUtils
 import com.example.doggitoapp.android.domain.model.VaccineRecord
 import org.koin.androidx.compose.koinViewModel
@@ -32,39 +32,50 @@ fun MedicalHistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Historial Médico") },
+                title = { Text("Historial Medico", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = DoggitoOrange
+                containerColor = DoggitoGreen
             ) {
-                Icon(Icons.Default.Add, "Agregar vacuna")
+                Icon(Icons.Default.Add, "Agregar vacuna", tint = Color.White)
             }
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         if (uiState.vaccines.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding), contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.MedicalServices, null, Modifier.size(64.dp), tint = HealthColor)
                     Spacer(Modifier.height(16.dp))
-                    Text("Sin registros médicos aún")
+                    Text("Sin registros medicos aun", color = TextPrimary)
                     Text(
                         "Agrega las vacunas de tu mascota",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        color = TextSecondary
                     )
                 }
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -93,7 +104,10 @@ fun MedicalHistoryScreen(
 
 @Composable
 private fun VaccineCard(vaccine: VaccineRecord, onDelete: () -> Unit) {
-    Card(shape = RoundedCornerShape(12.dp)) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
+    ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -101,24 +115,25 @@ private fun VaccineCard(vaccine: VaccineRecord, onDelete: () -> Unit) {
             Icon(Icons.Default.Vaccines, null, tint = HealthColor)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(vaccine.vaccineName, fontWeight = FontWeight.SemiBold)
+                Text(vaccine.vaccineName, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 Text(
                     "Aplicada: ${DateUtils.formatDate(vaccine.dateAdministered)}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
                 )
                 vaccine.nextDueDate?.let {
                     Text(
-                        "Próxima: ${DateUtils.formatDate(it)}",
+                        "Proxima: ${DateUtils.formatDate(it)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = DoggitoGreen
                     )
                 }
                 vaccine.vetName?.let {
-                    Text("Vet: $it", style = MaterialTheme.typography.bodySmall)
+                    Text("Vet: $it", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, "Eliminar", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Default.Delete, "Eliminar", tint = ErrorRed)
             }
         }
     }
@@ -131,7 +146,7 @@ private fun AddVaccineDialog(onDismiss: () -> Unit, onConfirm: (String, String) 
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Agregar Vacuna") },
+        title = { Text("Agregar Vacuna", color = TextPrimary) },
         text = {
             Column {
                 OutlinedTextField(
@@ -139,7 +154,8 @@ private fun AddVaccineDialog(onDismiss: () -> Unit, onConfirm: (String, String) 
                     onValueChange = { vaccineName = it },
                     label = { Text("Nombre de la vacuna") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -147,7 +163,8 @@ private fun AddVaccineDialog(onDismiss: () -> Unit, onConfirm: (String, String) 
                     onValueChange = { vetName = it },
                     label = { Text("Veterinario (opcional)") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
                 )
             }
         },
@@ -155,7 +172,7 @@ private fun AddVaccineDialog(onDismiss: () -> Unit, onConfirm: (String, String) 
             TextButton(
                 onClick = { onConfirm(vaccineName, vetName) },
                 enabled = vaccineName.isNotBlank()
-            ) { Text("Guardar") }
+            ) { Text("Guardar", color = DoggitoGreen) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancelar") }

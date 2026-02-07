@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.doggitoapp.android.core.theme.TextPrimary
 import com.example.doggitoapp.android.core.theme.WarningAmber
 
 @Composable
@@ -16,9 +17,9 @@ fun OfflineBanner(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = WarningAmber.copy(alpha = 0.15f)
+            containerColor = WarningAmber.copy(alpha = 0.12f)
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(14.dp)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -26,15 +27,15 @@ fun OfflineBanner(modifier: Modifier = Modifier) {
         ) {
             Icon(
                 Icons.Default.WifiOff,
-                contentDescription = "Sin conexión",
+                contentDescription = "Sin conexion",
                 tint = WarningAmber,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                "Modo offline - tus datos se sincronizarán al conectarte",
+                "Modo offline - tus datos se sincronizaran al conectarte",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground
+                color = TextPrimary
             )
         }
     }

@@ -10,10 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.doggitoapp.android.core.theme.DoggitoOrange
-import com.example.doggitoapp.android.core.theme.ErrorRed
+import com.example.doggitoapp.android.core.theme.*
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,14 +28,19 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes") },
+                title = { Text("Ajustes", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         Column(
             modifier = Modifier
@@ -43,15 +48,18 @@ fun SettingsScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // App info
-            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Pets, null, tint = DoggitoOrange)
+                        Icon(Icons.Default.Pets, null, tint = DoggitoGreen)
                         Spacer(Modifier.width(12.dp))
                         Column {
-                            Text("Doggito", fontWeight = FontWeight.Bold)
-                            Text("Versión 1.0.0", style = MaterialTheme.typography.bodySmall)
+                            Text("Doggito", fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text("Version 1.0.0", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                         }
                     }
                 }
@@ -59,41 +67,48 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("General", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text("General", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                     Spacer(Modifier.height(12.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Notifications, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                        Icon(Icons.Default.Notifications, null, tint = TextSecondary)
                         Spacer(Modifier.width(12.dp))
-                        Text("Notificaciones", Modifier.weight(1f))
-                        Switch(checked = true, onCheckedChange = { /* TODO */ })
+                        Text("Notificaciones", Modifier.weight(1f), color = TextPrimary)
+                        Switch(
+                            checked = true,
+                            onCheckedChange = { /* TODO */ },
+                            colors = SwitchDefaults.colors(checkedTrackColor = DoggitoGreen)
+                        )
                     }
 
                     Divider(Modifier.padding(vertical = 8.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.DarkMode, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                        Icon(Icons.Default.DarkMode, null, tint = TextSecondary)
                         Spacer(Modifier.width(12.dp))
-                        Text("Modo oscuro", Modifier.weight(1f))
-                        Text("Automático", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        Text("Modo oscuro", Modifier.weight(1f), color = TextPrimary)
+                        Text("Automatico", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     }
                 }
             }
 
             Spacer(Modifier.weight(1f))
 
-            // Logout button
             OutlinedButton(
                 onClick = { showLogoutDialog = true },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed)
             ) {
                 Icon(Icons.AutoMirrored.Filled.Logout, null)
                 Spacer(Modifier.width(8.dp))
-                Text("Cerrar Sesión")
+                Text("Cerrar Sesion")
             }
         }
     }
@@ -101,13 +116,13 @@ fun SettingsScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Cerrar Sesión") },
-            text = { Text("¿Estás seguro de que quieres cerrar sesión?") },
+            title = { Text("Cerrar Sesion", color = TextPrimary) },
+            text = { Text("Estas seguro de que quieres cerrar sesion?", color = TextSecondary) },
             confirmButton = {
                 TextButton(onClick = {
                     showLogoutDialog = false
                     viewModel.logout(onLogout)
-                }) { Text("Cerrar Sesión", color = ErrorRed) }
+                }) { Text("Cerrar Sesion", color = ErrorRed) }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) { Text("Cancelar") }

@@ -11,9 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.doggitoapp.android.core.theme.DoggitoOrange
+import com.example.doggitoapp.android.core.theme.*
 import com.example.doggitoapp.android.domain.model.Store
 import org.koin.androidx.compose.koinViewModel
 
@@ -29,22 +30,29 @@ fun StoresScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tiendas Doggito") },
+                title = { Text("Tiendas Doggito", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = DoggitoOrange)
+                CircularProgressIndicator(color = DoggitoGreen)
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -61,18 +69,19 @@ fun StoresScreen(
 private fun StoreCard(store: Store, onClick: () -> Unit) {
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Store, null, tint = DoggitoOrange, modifier = Modifier.size(40.dp))
+            Icon(Icons.Default.Store, null, tint = DoggitoGreen, modifier = Modifier.size(40.dp))
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(store.name, fontWeight = FontWeight.SemiBold)
-                Text(store.address, style = MaterialTheme.typography.bodySmall)
-                Text(store.openingHours, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                Text(store.name, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(store.address, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text(store.openingHours, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
             }
-            Icon(Icons.Default.ChevronRight, null)
+            Icon(Icons.Default.ChevronRight, null, tint = TextSecondary)
         }
     }
 }

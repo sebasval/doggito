@@ -70,7 +70,10 @@ fun DoggitoNavGraph(
         composable(Screen.Home.route) {
             HomeScreen(
                 onNavigateToTasks = { navController.navigate(Screen.Tasks.route) },
-                onNavigateToRunning = { navController.navigate(Screen.Running.route) },
+                onNavigateToRunning = {
+                    // Navigate directly to RunningActive (simplified flow)
+                    navController.navigate(Screen.RunningActive.createRoute("RUN"))
+                },
                 onNavigateToShop = { navController.navigate(Screen.Shop.route) },
                 onNavigateToProfile = { navController.navigate(Screen.PetProfile.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
@@ -85,7 +88,7 @@ fun DoggitoNavGraph(
             )
         }
 
-        // Running
+        // Running - keep legacy screen accessible from history
         composable(Screen.Running.route) {
             RunningScreen(
                 onStartRun = { mode -> navController.navigate(Screen.RunningActive.createRoute(mode)) },
@@ -96,12 +99,13 @@ fun DoggitoNavGraph(
 
         composable(
             Screen.RunningActive.route,
-            arguments = listOf(navArgument("mode") { type = NavType.StringType })
+            arguments = listOf(navArgument("mode") { type = NavType.StringType; defaultValue = "RUN" })
         ) { backStackEntry ->
-            val mode = backStackEntry.arguments?.getString("mode") ?: "WALK"
+            val mode = backStackEntry.arguments?.getString("mode") ?: "RUN"
             RunningActiveScreen(
                 mode = mode,
-                onFinish = { navController.popBackStack() }
+                onFinish = { navController.popBackStack() },
+                onViewHistory = { navController.navigate(Screen.RunningHistory.route) }
             )
         }
 

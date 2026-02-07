@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,7 +35,7 @@ fun ShopScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tienda Doggito") },
+                title = { Text("Tienda Doggito", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
@@ -43,7 +44,7 @@ fun ShopScreen(
                 actions = {
                     Surface(
                         shape = RoundedCornerShape(20.dp),
-                        color = DoggiCoinGold.copy(alpha = 0.15f),
+                        color = DoggiCoinGold.copy(alpha = 0.12f),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Row(
@@ -55,18 +56,25 @@ fun ShopScreen(
                             Text("${uiState.balance}", fontWeight = FontWeight.Bold, color = DoggiCoinGoldDark)
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = DoggitoOrange)
+                CircularProgressIndicator(color = DoggitoGreen)
             }
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentPadding = PaddingValues(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -90,8 +98,9 @@ private fun ProductCard(product: Product, balance: Int, onClick: () -> Unit) {
 
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Column {
             AsyncImage(
@@ -100,7 +109,7 @@ private fun ProductCard(product: Product, balance: Int, onClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
                 contentScale = ContentScale.Crop
             )
             Column(Modifier.padding(12.dp)) {
@@ -109,12 +118,13 @@ private fun ProductCard(product: Product, balance: Int, onClick: () -> Unit) {
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = TextPrimary
                 )
                 Text(
                     product.category.displayName,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color = TextSecondary
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {

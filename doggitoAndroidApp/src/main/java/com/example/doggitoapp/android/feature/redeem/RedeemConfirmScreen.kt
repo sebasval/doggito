@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,18 +36,23 @@ fun RedeemConfirmScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Confirmar Canje") },
+                title = { Text("Confirmar Canje", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         if (product == null) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = DoggitoOrange)
+                CircularProgressIndicator(color = DoggitoGreen)
             }
         } else {
             Column(
@@ -57,31 +63,35 @@ fun RedeemConfirmScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Icon(Icons.Default.CardGiftcard, null, Modifier.size(64.dp), tint = DoggitoOrange)
+                Icon(Icons.Default.CardGiftcard, null, Modifier.size(64.dp), tint = DoggitoGreen)
                 Spacer(Modifier.height(16.dp))
-                Text("Confirmar Canje", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text("Confirmar Canje", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
 
                 Spacer(Modifier.height(24.dp))
 
-                Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
+                ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Producto", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                        Text(product.name, fontWeight = FontWeight.SemiBold)
+                        Text("Producto", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                        Text(product.name, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Divider(Modifier.padding(vertical = 12.dp))
 
-                        Text("Costo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        Text("Costo", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.MonetizationOn, null, tint = DoggiCoinGold, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("${product.priceCoins} DoggiCoins", fontWeight = FontWeight.Bold)
+                            Text("${product.priceCoins} DoggiCoins", fontWeight = FontWeight.Bold, color = TextPrimary)
                         }
                         Divider(Modifier.padding(vertical = 12.dp))
 
-                        Text("Tu saldo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                        Text("${uiState.balance} DoggiCoins", fontWeight = FontWeight.SemiBold)
+                        Text("Tu saldo", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                        Text("${uiState.balance} DoggiCoins", fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Divider(Modifier.padding(vertical = 12.dp))
 
-                        Text("Saldo después del canje", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        Text("Saldo despues del canje", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
                         Text(
                             "${uiState.balance - product.priceCoins} DoggiCoins",
                             fontWeight = FontWeight.Bold,
@@ -90,18 +100,18 @@ fun RedeemConfirmScreen(
 
                         if (store != null) {
                             Divider(Modifier.padding(vertical = 12.dp))
-                            Text("Tienda más cercana", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                            Text(store.name, fontWeight = FontWeight.SemiBold)
-                            Text(store.address, style = MaterialTheme.typography.bodySmall)
+                            Text("Tienda mas cercana", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                            Text(store.name, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                            Text(store.address, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                         }
                     }
                 }
 
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Vigencia: 30 días para reclamar en tienda",
+                    "Vigencia: 30 dias para reclamar en tienda",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    color = TextSecondary,
                     textAlign = TextAlign.Center
                 )
 
@@ -114,13 +124,15 @@ fun RedeemConfirmScreen(
 
                 Button(
                     onClick = { viewModel.confirmRedeem(productId, onRedeemSuccess) },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
                     enabled = !uiState.isProcessing && uiState.balance >= product.priceCoins,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DoggitoOrange)
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
                 ) {
                     if (uiState.isProcessing) {
-                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                        CircularProgressIndicator(Modifier.size(24.dp), color = Color.White)
                     } else {
                         Text("Confirmar Canje", fontWeight = FontWeight.SemiBold)
                     }
@@ -130,7 +142,7 @@ fun RedeemConfirmScreen(
                 OutlinedButton(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Text("Cancelar")
                 }

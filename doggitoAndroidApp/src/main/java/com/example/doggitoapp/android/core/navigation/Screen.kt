@@ -15,8 +15,8 @@ sealed class Screen(val route: String) {
 
     // Running
     data object Running : Screen("running")
-    data object RunningActive : Screen("running/active/{mode}") {
-        fun createRoute(mode: String) = "running/active/$mode"
+    data object RunningActive : Screen("running/active?mode={mode}") {
+        fun createRoute(mode: String = "RUN") = "running/active?mode=$mode"
     }
     data object RunningHistory : Screen("running/history")
 
@@ -53,4 +53,14 @@ sealed class Screen(val route: String) {
 
     // Settings
     data object Settings : Screen("settings")
+
+    companion object {
+        // Routes where the bottom navigation bar should be visible
+        val mainRoutes = setOf(
+            Home.route,
+            Tasks.route,
+            Shop.route,
+            PetProfile.route
+        )
+    }
 }

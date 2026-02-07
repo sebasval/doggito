@@ -12,10 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.doggitoapp.android.core.theme.DoggitoOrange
+import com.example.doggitoapp.android.core.theme.*
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,14 +38,19 @@ fun PetEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isNew) "Registrar Mascota" else "Editar Mascota") },
+                title = { Text(if (isNew) "Registrar Mascota" else "Editar Mascota", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         Column(
             modifier = Modifier
@@ -55,73 +61,81 @@ fun PetEditScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (isNew) {
-                Icon(Icons.Default.Pets, null, Modifier.size(80.dp), tint = DoggitoOrange)
+                Icon(Icons.Default.Pets, null, Modifier.size(80.dp), tint = DoggitoGreen)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "¡Cuéntanos sobre tu perro!",
+                    "Cuentanos sobre tu perro!",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
                 )
                 Spacer(Modifier.height(24.dp))
             }
 
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre de tu perro") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = breed,
-                onValueChange = { breed = it },
-                label = { Text("Raza") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = weightText,
-                onValueChange = { weightText = it },
-                label = { Text("Peso (kg)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(Modifier.height(32.dp))
-
-            Button(
-                onClick = {
-                    val weight = weightText.toFloatOrNull() ?: 0f
-                    viewModel.savePet(
-                        name = name,
-                        breed = breed,
-                        birthDate = existingPet?.birthDate ?: System.currentTimeMillis(),
-                        weight = weight,
-                        photoUri = existingPet?.photoUri
-                    )
-                    onSaved()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                enabled = name.isNotBlank() && breed.isNotBlank() && weightText.toFloatOrNull() != null,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DoggitoOrange)
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
             ) {
-                if (uiState.isSaving) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(if (isNew) "Registrar" else "Guardar Cambios", fontWeight = FontWeight.SemiBold)
+                Column(modifier = Modifier.padding(24.dp)) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nombre de tu perro") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = breed,
+                        onValueChange = { breed = it },
+                        label = { Text("Raza") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = weightText,
+                        onValueChange = { weightText = it },
+                        label = { Text("Peso (kg)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    Spacer(Modifier.height(32.dp))
+
+                    Button(
+                        onClick = {
+                            val weight = weightText.toFloatOrNull() ?: 0f
+                            viewModel.savePet(
+                                name = name,
+                                breed = breed,
+                                birthDate = existingPet?.birthDate ?: System.currentTimeMillis(),
+                                weight = weight,
+                                photoUri = existingPet?.photoUri
+                            )
+                            onSaved()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        enabled = name.isNotBlank() && breed.isNotBlank() && weightText.toFloatOrNull() != null,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
+                    ) {
+                        if (uiState.isSaving) {
+                            CircularProgressIndicator(Modifier.size(24.dp), color = Color.White)
+                        } else {
+                            Text(if (isNew) "Registrar" else "Guardar Cambios", fontWeight = FontWeight.SemiBold)
+                        }
+                    }
                 }
             }
         }

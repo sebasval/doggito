@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.doggitoapp.android.core.theme.*
@@ -30,27 +31,38 @@ fun RedeemHistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Historial de Canjes") },
+                title = { Text("Historial de Canjes", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         if (uiState.redeemHistory.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding), contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.CardGiftcard, null, Modifier.size(64.dp), tint = DoggitoOrange)
+                    Icon(Icons.Default.CardGiftcard, null, Modifier.size(64.dp), tint = DoggitoGreenLight)
                     Spacer(Modifier.height(16.dp))
-                    Text("Sin canjes aún")
-                    Text("¡Acumula DoggiCoins y canjea premios!", style = MaterialTheme.typography.bodySmall)
+                    Text("Sin canjes aun", color = TextPrimary)
+                    Text("Acumula DoggiCoins y canjea premios!", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                 }
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -66,7 +78,7 @@ fun RedeemHistoryScreen(
 private fun RedeemHistoryCard(redeemCode: RedeemCode) {
     val statusColor = when (redeemCode.status) {
         RedeemStatus.ACTIVE -> SuccessGreen
-        RedeemStatus.CLAIMED -> DoggitoTeal
+        RedeemStatus.CLAIMED -> DoggitoGreen
         RedeemStatus.EXPIRED -> ErrorRed
     }
     val statusIcon = when (redeemCode.status) {
@@ -75,19 +87,22 @@ private fun RedeemHistoryCard(redeemCode: RedeemCode) {
         RedeemStatus.EXPIRED -> Icons.Default.Cancel
     }
 
-    Card(shape = RoundedCornerShape(12.dp)) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
+    ) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(statusIcon, null, tint = statusColor, modifier = Modifier.size(32.dp))
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text("Código: ${redeemCode.code}", fontWeight = FontWeight.SemiBold)
-                Text("Creado: ${DateUtils.formatDate(redeemCode.createdAt)}", style = MaterialTheme.typography.bodySmall)
+                Text("Codigo: ${redeemCode.code}", fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text("Creado: ${DateUtils.formatDate(redeemCode.createdAt)}", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                 if (redeemCode.status == RedeemStatus.ACTIVE) {
                     val daysLeft = DateUtils.daysUntil(redeemCode.expiresAt)
-                    Text("Expira en $daysLeft días", style = MaterialTheme.typography.bodySmall, color = if (daysLeft > 7) SuccessGreen else WarningAmber)
+                    Text("Expira en $daysLeft dias", style = MaterialTheme.typography.bodySmall, color = if (daysLeft > 7) SuccessGreen else WarningAmber)
                 }
             }
-            Surface(shape = RoundedCornerShape(8.dp), color = statusColor.copy(alpha = 0.15f)) {
+            Surface(shape = RoundedCornerShape(10.dp), color = statusColor.copy(alpha = 0.12f)) {
                 Text(
                     redeemCode.status.displayName,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),

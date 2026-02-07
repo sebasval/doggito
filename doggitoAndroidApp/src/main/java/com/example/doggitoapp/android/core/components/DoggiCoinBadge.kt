@@ -36,7 +36,7 @@ fun DoggiCoinBadge(
 
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = DoggiCoinGold.copy(alpha = 0.15f),
+        color = DoggiCoinGold.copy(alpha = 0.12f),
         modifier = modifier.scale(scale)
     ) {
         Row(

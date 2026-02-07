@@ -33,14 +33,19 @@ fun TasksScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tareas del Día") },
+                title = { Text("Tareas del Dia", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -52,40 +57,45 @@ fun TasksScreen(
             // Progress header
             item {
                 Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = DoggitoTeal.copy(alpha = 0.1f))
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = DoggitoGreen.copy(alpha = 0.1f))
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 "Progreso",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
                             )
                             Spacer(Modifier.weight(1f))
                             Text(
                                 "${uiState.completedCount}/${uiState.totalCount}",
                                 fontWeight = FontWeight.Bold,
-                                color = DoggitoTeal
+                                color = DoggitoGreenDark
                             )
                         }
                         Spacer(Modifier.height(8.dp))
                         val progress = if (uiState.totalCount > 0) uiState.completedCount.toFloat() / uiState.totalCount else 0f
                         LinearProgressIndicator(
                             progress = progress,
-                            modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
-                            color = DoggitoTeal,
-                            trackColor = DoggitoTeal.copy(alpha = 0.2f)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(10.dp)
+                                .clip(RoundedCornerShape(5.dp)),
+                            color = DoggitoGreen,
+                            trackColor = DoggitoGreenLight.copy(alpha = 0.3f)
                         )
                         uiState.streak?.let { streak ->
                             if (streak.currentStreak > 0) {
                                 Spacer(Modifier.height(8.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.LocalFireDepartment, null, tint = DoggitoOrange, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Default.LocalFireDepartment, null, tint = DoggitoAmber, modifier = Modifier.size(18.dp))
                                     Spacer(Modifier.width(4.dp))
                                     Text(
-                                        "Racha actual: ${streak.currentStreak} días | Mejor: ${streak.longestStreak} días",
-                                        style = MaterialTheme.typography.bodySmall
+                                        "Racha actual: ${streak.currentStreak} dias | Mejor: ${streak.longestStreak} dias",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextSecondary
                                     )
                                 }
                             }
@@ -111,14 +121,12 @@ fun TasksScreen(
                     TaskCard(
                         task = task,
                         isJustCompleted = uiState.justCompleted == task.id,
-                        onComplete = {
-                            viewModel.completeTask(task)
-                        }
+                        onComplete = { viewModel.completeTask(task) }
                     )
                 }
             }
 
-            item { Spacer(Modifier.height(80.dp)) }
+            item { Spacer(Modifier.height(100.dp)) }
         }
     }
 }
@@ -132,18 +140,21 @@ private fun TaskCard(
     val color = categoryColor(task.category)
 
     Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Checkbox
             Checkbox(
                 checked = task.isCompleted,
                 onCheckedChange = { if (!task.isCompleted) onComplete() },
-                colors = CheckboxDefaults.colors(checkedColor = color)
+                colors = CheckboxDefaults.colors(
+                    checkedColor = color,
+                    uncheckedColor = color.copy(alpha = 0.5f)
+                )
             )
             Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f)) {
@@ -151,21 +162,22 @@ private fun TaskCard(
                     task.title,
                     fontWeight = FontWeight.Medium,
                     textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                    color = if (task.isCompleted) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    else MaterialTheme.colorScheme.onSurface
+                    color = if (task.isCompleted) TextSecondary.copy(alpha = 0.5f) else TextPrimary
                 )
                 Text(
                     task.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = TextSecondary
                 )
             }
-            // Reward
             Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = if (task.isCompleted) SuccessGreen.copy(alpha = 0.15f) else DoggiCoinGold.copy(alpha = 0.15f)
+                shape = RoundedCornerShape(10.dp),
+                color = if (task.isCompleted) SuccessGreen.copy(alpha = 0.12f) else DoggiCoinGold.copy(alpha = 0.12f)
             ) {
-                Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         "+${task.rewardCoins}",
                         style = MaterialTheme.typography.labelMedium,

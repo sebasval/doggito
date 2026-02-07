@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,18 +41,23 @@ fun ProductDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalle del Producto") },
+                title = { Text("Detalle del Producto", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary
+                )
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         if (product == null) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = DoggitoOrange)
+                CircularProgressIndicator(color = DoggitoGreen)
             }
         } else {
             Column(
@@ -70,33 +76,38 @@ fun ProductDetailScreen(
                 )
 
                 Column(Modifier.padding(20.dp)) {
-                    Text(product.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text(product.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
                     Spacer(Modifier.height(4.dp))
-                    Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                    Surface(shape = RoundedCornerShape(10.dp), color = DoggitoGreenLight.copy(alpha = 0.2f)) {
                         Text(
                             product.category.displayName,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium
+                            style = MaterialTheme.typography.labelMedium,
+                            color = DoggitoGreenDark
                         )
                     }
 
                     Spacer(Modifier.height(16.dp))
-                    Text(product.description, style = MaterialTheme.typography.bodyLarge)
+                    Text(product.description, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
 
                     Spacer(Modifier.height(24.dp))
 
-                    // Price section
                     Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = DoggiCoinGold.copy(alpha = 0.1f))
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = DoggiCoinGold.copy(alpha = 0.08f))
                     ) {
-                        Column(Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Precio", style = MaterialTheme.typography.bodyMedium)
+                        Column(
+                            Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("Precio", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.MonetizationOn, null, tint = DoggiCoinGold, modifier = Modifier.size(28.dp))
                                 Spacer(Modifier.width(8.dp))
                                 Text("${product.priceCoins}", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = DoggiCoinGoldDark)
-                                Text(" DoggiCoins", style = MaterialTheme.typography.bodyMedium)
+                                Text(" DoggiCoins", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                             }
                             Spacer(Modifier.height(4.dp))
                             Text(
@@ -118,10 +129,12 @@ fun ProductDetailScreen(
 
                     Button(
                         onClick = onRedeem,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
                         enabled = canAfford,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DoggitoOrange)
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
                     ) {
                         Icon(Icons.Default.ShoppingCart, null)
                         Spacer(Modifier.width(8.dp))

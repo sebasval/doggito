@@ -1,6 +1,5 @@
 package com.example.doggitoapp.android.feature.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,8 +21,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.doggitoapp.android.core.theme.DoggiCoinGold
-import com.example.doggitoapp.android.core.theme.DoggitoOrange
+import com.example.doggitoapp.android.core.theme.*
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -40,121 +39,127 @@ fun LoginScreen(
         if (uiState.isLoggedIn) onLoginSuccess()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Logo
-        Icon(
-            imageVector = Icons.Default.Pets,
-            contentDescription = "Doggito Logo",
-            modifier = Modifier.size(80.dp),
-            tint = DoggitoOrange
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Doggito",
-            style = MaterialTheme.typography.displayLarge,
-            color = DoggitoOrange,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "Cuida a tu mejor amigo",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-        )
-
-        Spacer(modifier = Modifier.height(48.dp))
-
-        // Email field
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo electrónico") },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Password field
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-            trailingIcon = {
-                IconButton(onClick = { showPassword = !showPassword }) {
-                    Icon(
-                        if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (showPassword) "Ocultar" else "Mostrar"
-                    )
-                }
-            },
-            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        // Error message
-        if (uiState.error != null) {
+    DoggitoGradientBackground {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Logo
+            Icon(
+                imageVector = Icons.Default.Pets,
+                contentDescription = "Doggito Logo",
+                modifier = Modifier.size(80.dp),
+                tint = Color.White
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = uiState.error!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
+                text = "doggito.",
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
             )
-        }
+            Text(
+                text = "Cuida a tu mejor amigo",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.7f)
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
-        // Login button
-        Button(
-            onClick = { viewModel.login(email.trim(), password) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            enabled = email.isNotBlank() && password.isNotBlank() && !uiState.isLoading,
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DoggitoOrange)
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            // Form card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Correo electronico") },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Contrasena") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        trailingIcon = {
+                            IconButton(onClick = { showPassword = !showPassword }) {
+                                Icon(
+                                    if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                    contentDescription = if (showPassword) "Ocultar" else "Mostrar"
+                                )
+                            }
+                        },
+                        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    if (uiState.error != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = uiState.error!!,
+                            color = ErrorRed,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = { viewModel.login(email.trim(), password) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        enabled = email.isNotBlank() && password.isNotBlank() && !uiState.isLoading,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
+                    ) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White
+                            )
+                        } else {
+                            Text("Iniciar Sesion", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Register link
-        TextButton(onClick = onNavigateToRegister) {
-            Text(
-                "¿No tienes cuenta? Regístrate",
-                color = DoggitoOrange
-            )
-        }
+            TextButton(onClick = onNavigateToRegister) {
+                Text(
+                    "No tienes cuenta? Registrate",
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
 
-        // Skip for offline mode
-        TextButton(onClick = onLoginSuccess) {
-            Text(
-                "Continuar sin cuenta (modo offline)",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                style = MaterialTheme.typography.bodySmall
-            )
+            TextButton(onClick = onLoginSuccess) {
+                Text(
+                    "Continuar sin cuenta (modo offline)",
+                    color = Color.White.copy(alpha = 0.5f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
