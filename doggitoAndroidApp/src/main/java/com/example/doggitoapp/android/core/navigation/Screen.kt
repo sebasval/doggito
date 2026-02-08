@@ -59,7 +59,6 @@ sealed class Screen(val route: String) {
         val mainRoutes = setOf(
             Home.route,
             Tasks.route,
-            Shop.route,
             PetProfile.route
         )
     }

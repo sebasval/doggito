@@ -71,10 +71,11 @@ fun DoggitoNavGraph(
             HomeScreen(
                 onNavigateToTasks = { navController.navigate(Screen.Tasks.route) },
                 onNavigateToRunning = {
-                    // Navigate directly to RunningActive (simplified flow)
                     navController.navigate(Screen.RunningActive.createRoute("RUN"))
                 },
-                onNavigateToShop = { navController.navigate(Screen.Shop.route) },
+                onNavigateToProductDetail = { productId ->
+                    navController.navigate(Screen.ProductDetail.createRoute(productId))
+                },
                 onNavigateToProfile = { navController.navigate(Screen.PetProfile.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToRedeemHistory = { navController.navigate(Screen.RedeemHistory.route) }

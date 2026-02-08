@@ -65,7 +65,6 @@ private fun MainScreen(navController: NavHostController) {
                         BottomNavItem.HOME -> Screen.Home.route
                         BottomNavItem.TASKS -> Screen.Tasks.route
                         BottomNavItem.RUNNING -> Screen.RunningActive.createRoute("RUN")
-                        BottomNavItem.SHOP -> Screen.Shop.route
                         BottomNavItem.PROFILE -> Screen.PetProfile.route
                     }
                     if (currentRoute != targetRoute) {

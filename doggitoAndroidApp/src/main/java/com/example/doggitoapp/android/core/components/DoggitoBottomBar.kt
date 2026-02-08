@@ -35,7 +35,6 @@ enum class BottomNavItem(
     HOME("home", "Inicio", Icons.Filled.Home, Icons.Outlined.Home),
     TASKS("tasks", "Tareas", Icons.Filled.TaskAlt, Icons.Outlined.TaskAlt),
     RUNNING("running_direct", "Running", Icons.Filled.DirectionsRun, Icons.Outlined.DirectionsRun),
-    SHOP("shop", "Tienda", Icons.Filled.ShoppingBag, Icons.Outlined.ShoppingBag),
     PROFILE("profile", "Perfil", Icons.Filled.Pets, Icons.Outlined.Pets)
 }
 
@@ -70,7 +69,6 @@ fun DoggitoBottomBar(
                     BottomNavItem.HOME -> currentRoute == "home"
                     BottomNavItem.TASKS -> currentRoute == "tasks"
                     BottomNavItem.RUNNING -> currentRoute?.startsWith("running") == true
-                    BottomNavItem.SHOP -> currentRoute == "shop" || currentRoute?.startsWith("shop/") == true
                     BottomNavItem.PROFILE -> currentRoute == "profile" || currentRoute?.startsWith("profile/") == true
                 }
 

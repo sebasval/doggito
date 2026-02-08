@@ -7,9 +7,12 @@ import com.example.doggitoapp.android.data.local.dao.StreakDao
 import com.example.doggitoapp.android.data.local.entity.StreakEntity
 import com.example.doggitoapp.android.domain.model.DailyTask
 import com.example.doggitoapp.android.domain.model.Streak
+import com.example.doggitoapp.android.domain.model.TaskCategory
 import com.example.doggitoapp.android.domain.model.TransactionType
 import com.example.doggitoapp.android.domain.repository.CoinRepository
 import com.example.doggitoapp.android.domain.repository.TaskRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -18,7 +21,11 @@ data class TasksUiState(
     val completedCount: Int = 0,
     val totalCount: Int = 0,
     val streak: Streak? = null,
-    val justCompleted: String? = null // taskId for animation
+    val justCompleted: String? = null, // taskId for animation
+    val activeTimerTaskId: String? = null,
+    val timerSecondsRemaining: Int = 0,
+    val timerTotalSeconds: Int = 0,
+    val timerFinished: Boolean = false
 )
 
 class TasksViewModel(
@@ -33,6 +40,8 @@ class TasksViewModel(
 
     private val userId = "local_user"
     private val today = DateUtils.todayStartMillis()
+
+    private var countdownJob: Job? = null
 
     init {
         loadTasks()
@@ -68,8 +77,54 @@ class TasksViewModel(
         }
     }
 
+    fun startTimer(task: DailyTask) {
+        if (task.isCompleted) return
+
+        // Cancel any existing timer
+        countdownJob?.cancel()
+
+        val totalSeconds = getTimerDuration(task.category)
+
+        _uiState.value = _uiState.value.copy(
+            activeTimerTaskId = task.id,
+            timerSecondsRemaining = totalSeconds,
+            timerTotalSeconds = totalSeconds,
+            timerFinished = false
+        )
+
+        countdownJob = viewModelScope.launch {
+            var remaining = totalSeconds
+            while (remaining > 0) {
+                delay(1000L)
+                remaining--
+                _uiState.value = _uiState.value.copy(
+                    timerSecondsRemaining = remaining,
+                    timerFinished = remaining == 0
+                )
+            }
+        }
+    }
+
+    fun cancelTimer() {
+        countdownJob?.cancel()
+        countdownJob = null
+        _uiState.value = _uiState.value.copy(
+            activeTimerTaskId = null,
+            timerSecondsRemaining = 0,
+            timerTotalSeconds = 0,
+            timerFinished = false
+        )
+    }
+
     fun completeTask(task: DailyTask) {
         if (task.isCompleted) return
+        // Only allow completion if timer finished for this task
+        val state = _uiState.value
+        if (state.activeTimerTaskId != task.id || !state.timerFinished) return
+
+        countdownJob?.cancel()
+        countdownJob = null
+
         viewModelScope.launch {
             taskRepository.completeTask(task.id)
 
@@ -81,7 +136,13 @@ class TasksViewModel(
                 description = task.title
             )
 
-            _uiState.value = _uiState.value.copy(justCompleted = task.id)
+            _uiState.value = _uiState.value.copy(
+                justCompleted = task.id,
+                activeTimerTaskId = null,
+                timerSecondsRemaining = 0,
+                timerTotalSeconds = 0,
+                timerFinished = false
+            )
 
             // Check if all tasks completed -> update streak
             val completed = (_uiState.value.completedCount) + 1
@@ -90,6 +151,14 @@ class TasksViewModel(
                 updateStreak()
             }
         }
+    }
+
+    private fun getTimerDuration(category: TaskCategory): Int = when (category) {
+        TaskCategory.BASIC_CARE -> 45
+        TaskCategory.HEALTH -> 90
+        TaskCategory.EXERCISE -> 120
+        TaskCategory.TRAINING -> 90
+        TaskCategory.WELLNESS -> 60
     }
 
     private suspend fun updateStreak() {

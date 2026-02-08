@@ -6,13 +6,13 @@ import com.example.doggitoapp.android.core.util.DateUtils
 import com.example.doggitoapp.android.core.util.NetworkMonitor
 import com.example.doggitoapp.android.domain.model.CoinTransaction
 import com.example.doggitoapp.android.domain.model.Pet
+import com.example.doggitoapp.android.domain.model.Product
 import com.example.doggitoapp.android.domain.model.Streak
 import com.example.doggitoapp.android.domain.repository.CoinRepository
 import com.example.doggitoapp.android.domain.repository.PetRepository
+import com.example.doggitoapp.android.domain.repository.ShopRepository
 import com.example.doggitoapp.android.domain.repository.TaskRepository
 import com.example.doggitoapp.android.data.local.dao.StreakDao
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -22,6 +22,7 @@ data class HomeUiState(
     val completedTasks: Int = 0,
     val totalTasks: Int = 0,
     val streak: Streak? = null,
+    val products: List<Product> = emptyList(),
     val recentTransactions: List<CoinTransaction> = emptyList(),
     val isOnline: Boolean = true,
     val isLoading: Boolean = true
@@ -31,6 +32,7 @@ class HomeViewModel(
     private val petRepository: PetRepository,
     private val coinRepository: CoinRepository,
     private val taskRepository: TaskRepository,
+    private val shopRepository: ShopRepository,
     private val streakDao: StreakDao,
     private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
@@ -38,7 +40,6 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    // Use a simple local user ID; in production this would come from auth
     private val userId = "local_user"
 
     init {
@@ -49,7 +50,6 @@ class HomeViewModel(
         val today = DateUtils.todayStartMillis()
 
         viewModelScope.launch {
-            // Generate daily tasks if needed
             taskRepository.generateDailyTasks(userId, today)
         }
 
@@ -93,6 +93,18 @@ class HomeViewModel(
             networkMonitor.isOnline.collect { online ->
                 _uiState.value = _uiState.value.copy(isOnline = online)
             }
+        }
+
+        // Load products for home card stack (max 7)
+        viewModelScope.launch {
+            shopRepository.refreshProducts()
+        }
+        viewModelScope.launch {
+            shopRepository.getAvailableProducts()
+                .map { it.take(7) }
+                .collect { products ->
+                    _uiState.value = _uiState.value.copy(products = products)
+                }
         }
     }
 }
