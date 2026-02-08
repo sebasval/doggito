@@ -101,9 +101,8 @@ class RunningViewModel(
             val caloriesUser = estimateUserCalories(distanceMeters, durationMillis, state.currentMode)
             val caloriesDog = estimateDogCalories(distanceMeters, state.currentMode)
 
-            // DoggiCoins: 10 per km
-            val kms = (distanceMeters / 1000f).toInt()
-            val coins = maxOf(kms * 10, if (distanceMeters > 100) 5 else 0)
+            // DoggiCoins: 1 per 100m
+            val coins = (distanceMeters / 100f).toInt()
 
             // Build route JSON
             val points = LocationTrackingService.locationPoints.value

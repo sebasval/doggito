@@ -366,7 +366,7 @@ private fun ProductCardStack(
             val modifier = if (i == 0) {
                 Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.95f)
+                    .fillMaxHeight(0.85f)
                     .offset {
                         IntOffset(
                             offsetX.value.roundToInt(),
@@ -416,7 +416,7 @@ private fun ProductCardStack(
             } else {
                 Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.95f)
+                    .fillMaxHeight(0.85f)
                     .graphicsLayer {
                         translationY = depthOffsetY
                         translationX = depthOffsetX
@@ -450,7 +450,7 @@ private fun ProductCard(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Product image (top half)

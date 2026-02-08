@@ -198,7 +198,7 @@ fun RunningActiveScreen(
                     )
                     MetricColumn(
                         label = "DoggiCoins",
-                        value = "+${(distance / 1000f).toInt() * 10}",
+                        value = "+${(distance / 100f).toInt()}",
                         color = DoggitoAmberLight
                     )
                 }

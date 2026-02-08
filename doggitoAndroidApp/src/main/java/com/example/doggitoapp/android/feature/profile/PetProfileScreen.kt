@@ -22,6 +22,7 @@ import coil.compose.AsyncImage
 import com.example.doggitoapp.android.core.theme.*
 import com.example.doggitoapp.android.core.util.DateUtils
 import org.koin.androidx.compose.koinViewModel
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +124,12 @@ fun PetProfileScreen(
                 Spacer(Modifier.height(24.dp))
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    InfoChip(Icons.Default.Cake, "Nacimiento", DateUtils.formatDate(pet.birthDate))
+                    InfoChipWithSubtitle(
+                        icon = Icons.Default.Cake,
+                        label = "Edad",
+                        value = calculateAge(pet.birthDate),
+                        subtitle = DateUtils.formatDate(pet.birthDate)
+                    )
                     InfoChip(Icons.Default.Scale, "Peso", "${pet.weight} kg")
                 }
 
@@ -174,5 +180,44 @@ private fun InfoChip(icon: ImageVector, label: String, value: String) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
             Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary)
         }
+    }
+}
+
+@Composable
+private fun InfoChipWithSubtitle(icon: ImageVector, label: String, value: String, subtitle: String) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, null, tint = DoggitoGreen)
+            Spacer(Modifier.height(4.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Spacer(Modifier.height(2.dp))
+            Text(subtitle, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+        }
+    }
+}
+
+private fun calculateAge(birthDateMillis: Long): String {
+    val birth = Calendar.getInstance().apply { timeInMillis = birthDateMillis }
+    val now = Calendar.getInstance()
+    var years = now.get(Calendar.YEAR) - birth.get(Calendar.YEAR)
+    var months = now.get(Calendar.MONTH) - birth.get(Calendar.MONTH)
+    if (now.get(Calendar.DAY_OF_MONTH) < birth.get(Calendar.DAY_OF_MONTH)) {
+        months--
+    }
+    if (months < 0) {
+        years--
+        months += 12
+    }
+    return when {
+        years > 0 -> "$years ${if (years == 1) "año" else "años"} $months ${if (months == 1) "mes" else "meses"}"
+        months > 0 -> "$months ${if (months == 1) "mes" else "meses"}"
+        else -> "Recien nacido"
     }
 }
