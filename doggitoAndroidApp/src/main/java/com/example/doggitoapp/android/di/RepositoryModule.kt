@@ -9,7 +9,7 @@ val repositoryModule = module {
     single<TaskRepository> { TaskRepositoryImpl(get()) }
     single<CoinRepository> { CoinRepositoryImpl(get()) }
     single<RunRepository> { RunRepositoryImpl(get()) }
-    single<ShopRepository> { ShopRepositoryImpl(get()) }
+    single<ShopRepository> { ShopRepositoryImpl(get(), get()) }
     single<RedeemRepository> { RedeemRepositoryImpl(get()) }
     single<StoreRepository> { StoreRepositoryImpl(get()) }
     single<VaccineRepository> { VaccineRepositoryImpl(get()) }

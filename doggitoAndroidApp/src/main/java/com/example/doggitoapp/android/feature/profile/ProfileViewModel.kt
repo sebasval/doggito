@@ -1,7 +1,9 @@
 package com.example.doggitoapp.android.feature.profile
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.doggitoapp.android.data.sync.SyncManager
 import com.example.doggitoapp.android.domain.model.Pet
 import com.example.doggitoapp.android.domain.model.VaccineRecord
 import com.example.doggitoapp.android.domain.repository.PetRepository
@@ -23,7 +25,8 @@ data class ProfileUiState(
 class ProfileViewModel(
     private val petRepository: PetRepository,
     private val vaccineRepository: VaccineRepository,
-    private val supabaseClient: SupabaseClient
+    private val supabaseClient: SupabaseClient,
+    private val application: Application
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -74,6 +77,7 @@ class ProfileViewModel(
                     petRepository.savePet(pet)
                 }
                 _uiState.value = _uiState.value.copy(isSaving = false, pet = pet)
+                SyncManager.triggerImmediateSync(application)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
@@ -96,12 +100,14 @@ class ProfileViewModel(
                     vetName = vetName
                 )
             )
+            SyncManager.triggerImmediateSync(application)
         }
     }
 
     fun deleteVaccine(vaccine: VaccineRecord) {
         viewModelScope.launch {
             vaccineRepository.deleteVaccine(vaccine)
+            SyncManager.triggerImmediateSync(application)
         }
     }
 }

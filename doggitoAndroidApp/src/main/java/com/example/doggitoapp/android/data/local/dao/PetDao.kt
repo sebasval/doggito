@@ -24,6 +24,12 @@ interface PetDao {
     @Delete
     suspend fun deletePet(pet: PetEntity)
 
+    @Query("SELECT * FROM pets WHERE id = :petId")
+    suspend fun getPetByIdOnce(petId: String): PetEntity?
+
+    @Query("SELECT COUNT(*) FROM pets WHERE userId = :userId")
+    suspend fun countPetsByUser(userId: String): Int
+
     @Query("SELECT * FROM pets WHERE synced = 0")
     suspend fun getUnsyncedPets(): List<PetEntity>
 

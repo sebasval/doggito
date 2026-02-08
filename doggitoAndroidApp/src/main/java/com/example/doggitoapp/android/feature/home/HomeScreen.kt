@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.doggitoapp.android.core.theme.*
@@ -80,26 +81,12 @@ fun HomeScreen(
                 contentAlignment = Alignment.TopCenter
             ) {
                 if (uiState.products.isEmpty()) {
-                    // Loading / empty state
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Default.ShoppingBag,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = Color.White.copy(alpha = 0.3f)
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                "Cargando productos...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.5f)
-                            )
-                        }
-                    }
+                    // Shimmer loading placeholder
+                    ShimmerProductCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.85f)
+                    )
                 } else {
                     ProductCardStack(
                         products = uiState.products,
@@ -592,6 +579,106 @@ private fun ProductCard(
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
                         tint = TextSecondary.copy(alpha = 0.4f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─── Shimmer Loading Placeholder ─────────────────────────────────────────
+
+@Composable
+private fun ShimmerProductCard(modifier: Modifier = Modifier) {
+    val shimmerColors = listOf(
+        Color.White.copy(alpha = 0.08f),
+        Color.White.copy(alpha = 0.18f),
+        Color.White.copy(alpha = 0.08f)
+    )
+
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
+    )
+
+    val brush = Brush.linearGradient(
+        colors = shimmerColors,
+        start = Offset(translateAnim.value - 200f, 0f),
+        end = Offset(translateAnim.value, 0f)
+    )
+
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface.copy(alpha = 0.7f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Image placeholder
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(brush)
+            )
+
+            // Info placeholder
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                // Title shimmer
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(24.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(brush)
+                )
+                Spacer(Modifier.height(10.dp))
+                // Description shimmer lines
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(14.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(brush)
+                )
+                Spacer(Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(14.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(brush)
+                )
+                Spacer(Modifier.height(20.dp))
+                // Price shimmer
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(36.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(brush)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(36.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(brush)
                     )
                 }
             }

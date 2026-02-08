@@ -11,6 +11,8 @@ import com.example.doggitoapp.android.domain.model.TaskCategory
 import com.example.doggitoapp.android.domain.model.TransactionType
 import com.example.doggitoapp.android.domain.repository.CoinRepository
 import com.example.doggitoapp.android.domain.repository.TaskRepository
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -32,13 +34,15 @@ class TasksViewModel(
     private val taskRepository: TaskRepository,
     private val coinRepository: CoinRepository,
     private val streakDao: StreakDao,
-    private val networkMonitor: com.example.doggitoapp.android.core.util.NetworkMonitor
+    private val networkMonitor: com.example.doggitoapp.android.core.util.NetworkMonitor,
+    private val supabaseClient: SupabaseClient
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TasksUiState())
     val uiState: StateFlow<TasksUiState> = _uiState.asStateFlow()
 
-    private val userId = "local_user"
+    private val userId: String
+        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
     private val today = DateUtils.todayStartMillis()
 
     private var countdownJob: Job? = null

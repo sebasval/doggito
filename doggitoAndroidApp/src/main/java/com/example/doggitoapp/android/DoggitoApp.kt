@@ -30,6 +30,7 @@ class DoggitoApp : Application() {
 
         createNotificationChannels()
         SyncManager.schedulePeriodicSync(this)
+        SyncManager.triggerImmediateSync(this)
     }
 
     private fun createNotificationChannels() {

@@ -8,6 +8,8 @@ import com.example.doggitoapp.android.domain.model.RunningSession
 import com.example.doggitoapp.android.domain.model.TransactionType
 import com.example.doggitoapp.android.domain.repository.CoinRepository
 import com.example.doggitoapp.android.domain.repository.RunRepository
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -29,13 +31,15 @@ data class RunningUiState(
 class RunningViewModel(
     private val runRepository: RunRepository,
     private val coinRepository: CoinRepository,
-    private val petRepository: com.example.doggitoapp.android.domain.repository.PetRepository
+    private val petRepository: com.example.doggitoapp.android.domain.repository.PetRepository,
+    private val supabaseClient: SupabaseClient
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RunningUiState())
     val uiState: StateFlow<RunningUiState> = _uiState.asStateFlow()
 
-    private val userId = "local_user"
+    private val userId: String
+        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
 
     init {
         loadHistory()

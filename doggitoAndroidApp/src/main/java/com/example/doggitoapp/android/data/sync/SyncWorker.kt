@@ -5,11 +5,17 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.doggitoapp.android.data.local.dao.*
+import com.example.doggitoapp.android.data.local.entity.PetEntity
 import com.example.doggitoapp.android.data.remote.SupabaseClientProvider
+import io.github.jan.supabase.gotrue.SessionStatus
+import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.storage.storage
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.io.File
 
 class SyncWorker(
     context: Context,
@@ -28,6 +34,15 @@ class SyncWorker(
     }
 
     override suspend fun doWork(): Result {
+        // Esperar a que la sesion de auth se cargue antes de hacer llamadas a Postgrest
+        val client = SupabaseClientProvider.client
+        val status = client.auth.sessionStatus
+            .first { it !is SessionStatus.LoadingFromStorage }
+        if (status !is SessionStatus.Authenticated) {
+            Log.w(TAG, "Not authenticated, skipping sync")
+            return Result.success()
+        }
+
         return try {
             Log.d(TAG, "Starting sync...")
 
@@ -50,9 +65,21 @@ class SyncWorker(
         val unsynced = petDao.getUnsyncedPets()
         if (unsynced.isEmpty()) return
 
-        try {
-            val client = SupabaseClientProvider.client
-            unsynced.forEach { pet ->
+        val syncedIds = mutableListOf<String>()
+        val client = SupabaseClientProvider.client
+
+        unsynced.forEach { pet ->
+            try {
+                // Subir foto a Supabase Storage si es ruta local
+                val remotePhotoUrl = uploadPetPhoto(pet)
+
+                // Si tiene foto local pero no se pudo subir, NO sincronizar este pet
+                // para que se reintente en el proximo ciclo
+                if (pet.photoUri != null && pet.photoUri.startsWith("/") && remotePhotoUrl == null) {
+                    Log.w(TAG, "Skipping pet sync: photo upload failed for ${pet.id}, will retry")
+                    return@forEach
+                }
+
                 client.postgrest["pets"].upsert(
                     PetDto(
                         id = pet.id,
@@ -61,14 +88,48 @@ class SyncWorker(
                         breed = pet.breed,
                         birth_date = pet.birthDate,
                         weight = pet.weight,
-                        photo_uri = pet.photoUri
+                        photo_uri = remotePhotoUrl
                     )
                 )
+                syncedIds.add(pet.id)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to sync pet ${pet.id}", e)
             }
-            petDao.markAsSynced(unsynced.map { it.id })
-            Log.d(TAG, "Synced ${unsynced.size} pets")
+        }
+
+        if (syncedIds.isNotEmpty()) {
+            petDao.markAsSynced(syncedIds)
+            Log.d(TAG, "Synced ${syncedIds.size} pets")
+        }
+    }
+
+    /**
+     * Sube la foto local de la mascota a Supabase Storage.
+     * Retorna la URL publica si se subio, la URL existente si ya es remota, o null.
+     */
+    private suspend fun uploadPetPhoto(pet: PetEntity): String? {
+        val localPath = pet.photoUri ?: return null
+        // Si ya es URL remota, no re-subir
+        if (localPath.startsWith("http")) return localPath
+        // Es ruta local: verificar que el archivo exista
+        val file = File(localPath)
+        if (!file.exists()) {
+            Log.w(TAG, "Pet photo file does not exist: $localPath")
+            return null
+        }
+
+        Log.d(TAG, "Uploading pet photo: ${file.length()} bytes from $localPath")
+
+        return try {
+            val bucket = SupabaseClientProvider.client.storage.from("pet-photos")
+            val remotePath = "${pet.userId}/${pet.id}.jpg"
+            bucket.upload(remotePath, file.readBytes(), upsert = true)
+            val publicUrl = bucket.publicUrl(remotePath)
+            Log.d(TAG, "Uploaded pet photo successfully: $publicUrl")
+            publicUrl
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to sync pets: ${e.message}")
+            Log.e(TAG, "Failed to upload pet photo to Storage", e)
+            null
         }
     }
 

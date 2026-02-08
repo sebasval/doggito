@@ -13,6 +13,9 @@ import com.example.doggitoapp.android.domain.repository.PetRepository
 import com.example.doggitoapp.android.domain.repository.ShopRepository
 import com.example.doggitoapp.android.domain.repository.TaskRepository
 import com.example.doggitoapp.android.data.local.dao.StreakDao
+import com.example.doggitoapp.android.data.sync.DataPullManager
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -34,13 +37,16 @@ class HomeViewModel(
     private val taskRepository: TaskRepository,
     private val shopRepository: ShopRepository,
     private val streakDao: StreakDao,
-    private val networkMonitor: NetworkMonitor
+    private val networkMonitor: NetworkMonitor,
+    private val supabaseClient: SupabaseClient,
+    private val dataPullManager: DataPullManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private val userId = "local_user"
+    private val userId: String
+        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
 
     init {
         loadData()
@@ -49,62 +55,72 @@ class HomeViewModel(
     private fun loadData() {
         val today = DateUtils.todayStartMillis()
 
+        // Pull centralizado: primero descarga datos de Supabase a Room,
+        // luego inicia las colecciones reactivas de Room (en paralelo entre si)
         viewModelScope.launch {
+            // PASO 1: Pull de datos remotos (si no hay cache local)
+            dataPullManager.pullIfNeeded(userId)
+
+            // PASO 2: Generar tareas diarias (despues del pull por si se bajaron datos)
             taskRepository.generateDailyTasks(userId, today)
-        }
 
-        viewModelScope.launch {
-            petRepository.getFirstPetByUser(userId).collect { pet ->
-                _uiState.value = _uiState.value.copy(pet = pet)
+            // PASO 3: Iniciar colecciones reactivas de Room (en paralelo entre si)
+            launch {
+                petRepository.getFirstPetByUser(userId).collect { pet ->
+                    _uiState.value = _uiState.value.copy(pet = pet)
+                }
+            }
+
+            launch {
+                coinRepository.getBalance(userId).collect { balance ->
+                    _uiState.value = _uiState.value.copy(balance = balance)
+                }
+            }
+
+            launch {
+                taskRepository.getCompletedCountByDate(userId, today).collect { count ->
+                    _uiState.value = _uiState.value.copy(completedTasks = count)
+                }
+            }
+
+            launch {
+                taskRepository.getTotalCountByDate(userId, today).collect { count ->
+                    _uiState.value = _uiState.value.copy(totalTasks = count, isLoading = false)
+                }
+            }
+
+            launch {
+                coinRepository.getRecentTransactions(userId, 5).collect { txs ->
+                    _uiState.value = _uiState.value.copy(recentTransactions = txs)
+                }
+            }
+
+            launch {
+                streakDao.getStreak(userId).collect { streak ->
+                    _uiState.value = _uiState.value.copy(streak = streak?.toDomain())
+                }
             }
         }
 
-        viewModelScope.launch {
-            coinRepository.getBalance(userId).collect { balance ->
-                _uiState.value = _uiState.value.copy(balance = balance)
-            }
-        }
-
-        viewModelScope.launch {
-            taskRepository.getCompletedCountByDate(userId, today).collect { count ->
-                _uiState.value = _uiState.value.copy(completedTasks = count)
-            }
-        }
-
-        viewModelScope.launch {
-            taskRepository.getTotalCountByDate(userId, today).collect { count ->
-                _uiState.value = _uiState.value.copy(totalTasks = count, isLoading = false)
-            }
-        }
-
-        viewModelScope.launch {
-            coinRepository.getRecentTransactions(userId, 5).collect { txs ->
-                _uiState.value = _uiState.value.copy(recentTransactions = txs)
-            }
-        }
-
-        viewModelScope.launch {
-            streakDao.getStreak(userId).collect { streak ->
-                _uiState.value = _uiState.value.copy(streak = streak?.toDomain())
-            }
-        }
-
+        // Productos y network monitor corren independientes del pull
         viewModelScope.launch {
             networkMonitor.isOnline.collect { online ->
                 _uiState.value = _uiState.value.copy(isOnline = online)
             }
         }
 
-        // Load products for home card stack (max 7)
-        viewModelScope.launch {
-            shopRepository.refreshProducts()
-        }
         viewModelScope.launch {
             shopRepository.getAvailableProducts()
                 .map { it.take(7) }
                 .collect { products ->
-                    _uiState.value = _uiState.value.copy(products = products)
+                    _uiState.value = _uiState.value.copy(
+                        products = products,
+                        isLoading = products.isEmpty()
+                    )
                 }
+        }
+        viewModelScope.launch {
+            shopRepository.refreshProducts()
         }
     }
 }

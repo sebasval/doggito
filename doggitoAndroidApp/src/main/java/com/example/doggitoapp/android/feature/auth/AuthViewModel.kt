@@ -3,15 +3,18 @@ package com.example.doggitoapp.android.feature.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class AuthUiState(
     val isLoading: Boolean = false,
+    val isCheckingSession: Boolean = true,
     val error: String? = null,
     val isLoggedIn: Boolean = false,
     val userId: String? = null
@@ -30,16 +33,21 @@ class AuthViewModel(
 
     private fun checkSession() {
         viewModelScope.launch {
-            try {
-                val session = supabaseClient.auth.currentSessionOrNull()
-                if (session != null) {
+            // Esperar al primer estado definitivo (ignorar LoadingFromStorage)
+            val status = supabaseClient.auth.sessionStatus
+                .first { it !is SessionStatus.LoadingFromStorage }
+
+            when (status) {
+                is SessionStatus.Authenticated -> {
                     _uiState.value = _uiState.value.copy(
                         isLoggedIn = true,
-                        userId = session.user?.id
+                        isCheckingSession = false,
+                        userId = status.session.user?.id
                     )
                 }
-            } catch (_: Exception) {
-                // No session
+                else -> {
+                    _uiState.value = _uiState.value.copy(isCheckingSession = false)
+                }
             }
         }
     }

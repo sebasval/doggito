@@ -56,10 +56,12 @@ sealed class Screen(val route: String) {
 
     companion object {
         // Routes where the bottom navigation bar should be visible
-        val mainRoutes = setOf(
-            Home.route,
-            Tasks.route,
-            PetProfile.route
-        )
+        val mainRoutes by lazy {
+            setOf(
+                Home.route,
+                Tasks.route,
+                PetProfile.route
+            )
+        }
     }
 }
