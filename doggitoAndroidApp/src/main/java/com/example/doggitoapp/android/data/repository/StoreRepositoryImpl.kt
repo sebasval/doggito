@@ -1,17 +1,38 @@
 package com.example.doggitoapp.android.data.repository
 
+import android.util.Log
 import com.example.doggitoapp.android.data.local.dao.StoreDao
 import com.example.doggitoapp.android.data.local.entity.StoreEntity
 import com.example.doggitoapp.android.domain.model.Store
 import com.example.doggitoapp.android.domain.repository.StoreRepository
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
+import kotlinx.serialization.Serializable
 import kotlin.math.*
 
+@Serializable
+data class StoreDto(
+    val id: String,
+    val name: String,
+    val address: String,
+    val latitude: Double,
+    val longitude: Double,
+    val phone: String,
+    val email: String,
+    val opening_hours: String,
+    val image_url: String? = null
+)
+
 class StoreRepositoryImpl(
-    private val storeDao: StoreDao
+    private val storeDao: StoreDao,
+    private val supabaseClient: SupabaseClient
 ) : StoreRepository {
+
+    companion object {
+        private const val TAG = "StoreRepository"
+    }
 
     override fun getAllStores(): Flow<List<Store>> =
         storeDao.getAllStores().map { entities -> entities.map { it.toDomain() } }
@@ -27,31 +48,32 @@ class StoreRepositoryImpl(
         }
 
     override suspend fun refreshStores() {
-        // TODO: Fetch from Supabase when online
-        // Seed sample stores
-        val sampleStores = listOf(
-            StoreEntity(
-                id = UUID.randomUUID().toString(),
-                name = "Doggito Store Centro",
-                address = "Av. Principal 123, Centro",
-                latitude = 19.4326,
-                longitude = -99.1332,
-                phone = "+52 55 1234 5678",
-                email = "centro@doggito.com",
-                openingHours = "Lun-Sáb 9:00-20:00, Dom 10:00-15:00"
-            ),
-            StoreEntity(
-                id = UUID.randomUUID().toString(),
-                name = "Doggito Store Norte",
-                address = "Blvd. Norte 456, Col. Reforma",
-                latitude = 19.4500,
-                longitude = -99.1500,
-                phone = "+52 55 8765 4321",
-                email = "norte@doggito.com",
-                openingHours = "Lun-Sáb 10:00-21:00, Dom 10:00-16:00"
-            )
-        )
-        storeDao.insertStores(sampleStores)
+        try {
+            val remoteDtos = supabaseClient.postgrest["stores"]
+                .select()
+                .decodeList<StoreDto>()
+
+            if (remoteDtos.isNotEmpty()) {
+                val entities = remoteDtos.map { dto ->
+                    StoreEntity(
+                        id = dto.id,
+                        name = dto.name,
+                        address = dto.address,
+                        latitude = dto.latitude,
+                        longitude = dto.longitude,
+                        phone = dto.phone,
+                        email = dto.email,
+                        openingHours = dto.opening_hours,
+                        imageUrl = dto.image_url
+                    )
+                }
+                storeDao.clearAll()
+                storeDao.insertStores(entities)
+                Log.d(TAG, "Fetched ${entities.size} stores from Supabase")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch stores from Supabase, using cached data: ${e.message}")
+        }
     }
 
     private fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {

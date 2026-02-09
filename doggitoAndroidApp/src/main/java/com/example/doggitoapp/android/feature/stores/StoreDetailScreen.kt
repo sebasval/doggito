@@ -113,20 +113,6 @@ fun StoreDetailScreen(
                     Text("Ir a la Tienda (Google Maps)", fontWeight = FontWeight.SemiBold)
                 }
 
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedButton(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${store.phone}"))
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp)
-                ) {
-                    Icon(Icons.Default.Phone, null, tint = DoggitoGreen)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Llamar")
-                }
             }
         }
     }

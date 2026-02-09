@@ -19,8 +19,8 @@ val viewModelModule = module {
     viewModel { TasksViewModel(get(), get(), get(), get(), get()) }
     viewModel { RunningViewModel(get(), get(), get(), get()) }
     viewModel { ProfileViewModel(get(), get(), get(), androidApplication()) }
-    viewModel { ShopViewModel(get(), get()) }
-    viewModel { RedeemViewModel(get(), get(), get(), get()) }
+    viewModel { ShopViewModel(get(), get(), get()) }
+    viewModel { RedeemViewModel(get(), get(), get(), get(), get()) }
     viewModel { StoresViewModel(get()) }
     viewModel { SettingsViewModel(get()) }
 }

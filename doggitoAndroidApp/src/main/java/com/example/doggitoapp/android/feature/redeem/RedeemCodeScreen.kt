@@ -1,7 +1,7 @@
 package com.example.doggitoapp.android.feature.redeem
 
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,24 +14,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.doggitoapp.android.core.theme.*
 import com.example.doggitoapp.android.core.util.DateUtils
-import com.example.doggitoapp.android.core.util.QRGenerator
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RedeemCodeScreen(
     redeemId: String,
-    onNavigateToStore: (String) -> Unit,
     onBack: () -> Unit,
     viewModel: RedeemViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(redeemId) {
         viewModel.loadRedeemCode(redeemId)
@@ -76,6 +76,7 @@ fun RedeemCodeScreen(
 
                 Spacer(Modifier.height(24.dp))
 
+                // Codigo alfanumerico
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.fillMaxWidth(),
@@ -85,28 +86,23 @@ fun RedeemCodeScreen(
                         Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val qrBitmap: Bitmap = remember(redeemCode.qrData) {
-                            QRGenerator.generateQRBitmap(redeemCode.qrData, 300)
-                        }
-                        Image(
-                            bitmap = qrBitmap.asImageBitmap(),
-                            contentDescription = "Codigo QR",
-                            modifier = Modifier.size(200.dp)
-                        )
-
+                        Icon(Icons.Default.ConfirmationNumber, null, Modifier.size(40.dp), tint = DoggitoGreen)
                         Spacer(Modifier.height(12.dp))
-                        Text("Codigo:", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("Tu codigo de canje:", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Spacer(Modifier.height(4.dp))
                         Text(
                             redeemCode.code,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = TextPrimary,
+                            letterSpacing = 3.sp
                         )
                     }
                 }
 
                 Spacer(Modifier.height(16.dp))
 
+                // Vigencia
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth(),
@@ -124,6 +120,7 @@ fun RedeemCodeScreen(
                     }
                 }
 
+                // Tienda
                 if (store != null) {
                     Spacer(Modifier.height(12.dp))
                     Card(
@@ -142,14 +139,26 @@ fun RedeemCodeScreen(
                             Text("Horario: ${store.openingHours}", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
 
                             Spacer(Modifier.height(12.dp))
-                            OutlinedButton(
-                                onClick = { onNavigateToStore(store.id) },
+                            Button(
+                                onClick = {
+                                    val uri = Uri.parse("google.navigation:q=${store.latitude},${store.longitude}")
+                                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                                        setPackage("com.google.android.apps.maps")
+                                    }
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (_: Exception) {
+                                        val browserUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}")
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, browserUri))
+                                    }
+                                },
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
                             ) {
                                 Icon(Icons.Default.Navigation, null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Ver en Mapa / Navegar")
+                                Text("Navegar a la Tienda", fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -157,18 +166,17 @@ fun RedeemCodeScreen(
 
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "Presenta este codigo QR o el codigo alfanumerico en la tienda para reclamar tu producto.",
+                    "Presenta este codigo en la tienda para reclamar tu producto.",
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
                     color = TextSecondary
                 )
 
                 Spacer(Modifier.height(24.dp))
-                Button(
+                OutlinedButton(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Text("Volver al Inicio", fontWeight = FontWeight.SemiBold)
                 }

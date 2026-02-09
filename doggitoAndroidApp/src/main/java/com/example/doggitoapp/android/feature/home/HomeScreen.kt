@@ -3,10 +3,17 @@ package com.example.doggitoapp.android.feature.home
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -33,6 +40,7 @@ import org.koin.androidx.compose.koinViewModel
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     onNavigateToTasks: () -> Unit,
@@ -45,56 +53,81 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.refresh() }
+    )
+
     DoggitoGradientBackground {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(bottom = 100.dp)
+                .pullRefresh(pullRefreshState)
         ) {
-            // Top bar: plan badge + settings + pet avatar
-            TopBarRow(
-                petPhotoUri = uiState.pet?.photoUri,
-                onNavigateToSettings = onNavigateToSettings,
-                onNavigateToProfile = onNavigateToProfile
-            )
-
-            // Combined header: DoggiCoins (left) + Task Progress (right)
-            HomeHeader(
-                balance = uiState.balance,
-                petName = uiState.pet?.name,
-                streakDays = uiState.streak?.currentStreak ?: 0,
-                completedTasks = uiState.completedTasks,
-                totalTasks = uiState.totalTasks,
-                onViewHistory = onNavigateToRedeemHistory,
-                onNavigateToTasks = onNavigateToTasks
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Product Card Stack
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.TopCenter
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(bottom = 100.dp)
+                    .scrollable(
+                        state = rememberScrollableState { 0f },
+                        orientation = Orientation.Vertical
+                    )
             ) {
-                if (uiState.products.isEmpty()) {
-                    // Shimmer loading placeholder
-                    ShimmerProductCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.85f)
-                    )
-                } else {
-                    ProductCardStack(
-                        products = uiState.products,
-                        balance = uiState.balance,
-                        onProductClick = onNavigateToProductDetail
-                    )
+                // Top bar: plan badge + settings + pet avatar
+                TopBarRow(
+                    petPhotoUri = uiState.pet?.photoUri,
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToProfile = onNavigateToProfile
+                )
+
+                // Combined header: DoggiCoins (left) + Task Progress (right)
+                HomeHeader(
+                    balance = uiState.balance,
+                    petName = uiState.pet?.name,
+                    streakDays = uiState.streak?.currentStreak ?: 0,
+                    completedTasks = uiState.completedTasks,
+                    totalTasks = uiState.totalTasks,
+                    onViewHistory = onNavigateToRedeemHistory,
+                    onNavigateToTasks = onNavigateToTasks
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // Product Card Stack
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    if (uiState.products.isEmpty()) {
+                        // Shimmer loading placeholder
+                        ShimmerProductCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.85f)
+                        )
+                    } else {
+                        ProductCardStack(
+                            products = uiState.products,
+                            balance = uiState.balance,
+                            onProductClick = onNavigateToProductDetail
+                        )
+                    }
                 }
             }
+
+            // Pull-to-refresh indicator
+            PullRefreshIndicator(
+                refreshing = uiState.isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding(),
+                contentColor = DoggitoAmberLight
+            )
         }
     }
 }

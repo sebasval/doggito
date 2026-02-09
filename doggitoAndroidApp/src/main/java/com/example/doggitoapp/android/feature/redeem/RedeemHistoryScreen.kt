@@ -23,6 +23,7 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RedeemHistoryScreen(
+    onRedeemClick: (String) -> Unit,
     onBack: () -> Unit,
     viewModel: RedeemViewModel = koinViewModel()
 ) {
@@ -67,27 +68,32 @@ fun RedeemHistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(uiState.redeemHistory) { code ->
-                    RedeemHistoryCard(code)
+                    RedeemHistoryCard(
+                        redeemCode = code,
+                        onClick = { onRedeemClick(code.id) }
+                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RedeemHistoryCard(redeemCode: RedeemCode) {
+private fun RedeemHistoryCard(redeemCode: RedeemCode, onClick: () -> Unit) {
     val statusColor = when (redeemCode.status) {
         RedeemStatus.ACTIVE -> SuccessGreen
         RedeemStatus.CLAIMED -> DoggitoGreen
         RedeemStatus.EXPIRED -> ErrorRed
     }
     val statusIcon = when (redeemCode.status) {
-        RedeemStatus.ACTIVE -> Icons.Default.QrCode
+        RedeemStatus.ACTIVE -> Icons.Default.ConfirmationNumber
         RedeemStatus.CLAIMED -> Icons.Default.CheckCircle
         RedeemStatus.EXPIRED -> Icons.Default.Cancel
     }
 
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {

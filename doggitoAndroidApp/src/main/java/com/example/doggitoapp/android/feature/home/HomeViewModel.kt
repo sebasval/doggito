@@ -28,7 +28,8 @@ data class HomeUiState(
     val products: List<Product> = emptyList(),
     val recentTransactions: List<CoinTransaction> = emptyList(),
     val isOnline: Boolean = true,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false
 )
 
 class HomeViewModel(
@@ -50,6 +51,19 @@ class HomeViewModel(
 
     init {
         loadData()
+    }
+
+    /**
+     * Pull-to-refresh: fuerza la descarga de datos desde Supabase.
+     * Los Flows reactivos de Room actualizan la UI automáticamente.
+     */
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isRefreshing = true)
+            dataPullManager.forcePull(userId)
+            shopRepository.refreshProducts()
+            _uiState.value = _uiState.value.copy(isRefreshing = false)
+        }
     }
 
     private fun loadData() {

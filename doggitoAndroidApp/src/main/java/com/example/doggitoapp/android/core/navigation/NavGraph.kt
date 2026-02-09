@@ -189,7 +189,6 @@ fun DoggitoNavGraph(
             val redeemId = backStackEntry.arguments?.getString("redeemId") ?: ""
             RedeemCodeScreen(
                 redeemId = redeemId,
-                onNavigateToStore = { storeId -> navController.navigate(Screen.StoreDetail.createRoute(storeId)) },
                 onBack = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
@@ -199,7 +198,12 @@ fun DoggitoNavGraph(
         }
 
         composable(Screen.RedeemHistory.route) {
-            RedeemHistoryScreen(onBack = { navController.popBackStack() })
+            RedeemHistoryScreen(
+                onRedeemClick = { redeemId ->
+                    navController.navigate(Screen.RedeemCode.createRoute(redeemId))
+                },
+                onBack = { navController.popBackStack() }
+            )
         }
 
         // Stores

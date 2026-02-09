@@ -46,15 +46,34 @@ class DataPullManager(
             }
 
             Log.d(TAG, "No local data for user, pulling from Supabase...")
-            pullPets(userId)
-            pullCoinTransactions(userId)
-            pullRunningSessions(userId)
-            pullVaccines(userId)
-            pullRedeemCodes(userId)
+            pullAllData(userId)
             Log.d(TAG, "Pull completed successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Pull failed (offline-first, using local data)", e)
         }
+    }
+
+    /**
+     * Fuerza la descarga de todos los datos del usuario desde Supabase,
+     * sin importar si ya hay datos locales. Útil para pull-to-refresh
+     * y sincronización bidireccional.
+     */
+    suspend fun forcePull(userId: String) {
+        try {
+            Log.d(TAG, "Force pulling all data from Supabase...")
+            pullAllData(userId)
+            Log.d(TAG, "Force pull completed successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Force pull failed", e)
+        }
+    }
+
+    private suspend fun pullAllData(userId: String) {
+        pullPets(userId)
+        pullCoinTransactions(userId)
+        pullRunningSessions(userId)
+        pullVaccines(userId)
+        pullRedeemCodes(userId)
     }
 
     private suspend fun pullPets(userId: String) {
