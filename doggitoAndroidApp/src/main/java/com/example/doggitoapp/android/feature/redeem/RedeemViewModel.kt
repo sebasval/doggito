@@ -9,8 +9,8 @@ import com.example.doggitoapp.android.domain.repository.CoinRepository
 import com.example.doggitoapp.android.domain.repository.RedeemRepository
 import com.example.doggitoapp.android.domain.repository.ShopRepository
 import com.example.doggitoapp.android.domain.repository.StoreRepository
+import com.example.doggitoapp.android.core.util.awaitUserId
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -36,15 +36,17 @@ class RedeemViewModel(
     private val _uiState = MutableStateFlow(RedeemUiState())
     val uiState: StateFlow<RedeemUiState> = _uiState.asStateFlow()
 
-    private val userId: String
-        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
+    private var userId: String = "local_user"
 
     init {
-        loadHistory()
-        loadStores()
         viewModelScope.launch {
-            coinRepository.getBalance(userId).collect { balance ->
-                _uiState.value = _uiState.value.copy(balance = balance)
+            userId = supabaseClient.awaitUserId()
+            loadHistory()
+            loadStores()
+            launch {
+                coinRepository.getBalance(userId).collect { balance ->
+                    _uiState.value = _uiState.value.copy(balance = balance)
+                }
             }
         }
     }

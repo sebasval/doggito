@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.doggitoapp.android.domain.model.Product
 import com.example.doggitoapp.android.domain.repository.CoinRepository
 import com.example.doggitoapp.android.domain.repository.ShopRepository
+import com.example.doggitoapp.android.core.util.awaitUserId
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -26,11 +26,13 @@ class ShopViewModel(
     private val _uiState = MutableStateFlow(ShopUiState())
     val uiState: StateFlow<ShopUiState> = _uiState.asStateFlow()
 
-    private val userId: String
-        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
+    private var userId: String = "local_user"
 
     init {
-        loadData()
+        viewModelScope.launch {
+            userId = supabaseClient.awaitUserId()
+            loadData()
+        }
     }
 
     private fun loadData() {

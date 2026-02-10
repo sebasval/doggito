@@ -8,8 +8,8 @@ import com.example.doggitoapp.android.domain.model.Pet
 import com.example.doggitoapp.android.domain.model.VaccineRecord
 import com.example.doggitoapp.android.domain.repository.PetRepository
 import com.example.doggitoapp.android.domain.repository.VaccineRepository
+import com.example.doggitoapp.android.core.util.awaitUserId
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -32,11 +32,13 @@ class ProfileViewModel(
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    private val userId: String
-        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
+    private var userId: String = "local_user"
 
     init {
-        loadPet()
+        viewModelScope.launch {
+            userId = supabaseClient.awaitUserId()
+            loadPet()
+        }
     }
 
     private fun loadPet() {

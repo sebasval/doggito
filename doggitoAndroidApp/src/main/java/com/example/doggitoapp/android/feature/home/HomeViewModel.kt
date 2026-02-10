@@ -14,8 +14,8 @@ import com.example.doggitoapp.android.domain.repository.ShopRepository
 import com.example.doggitoapp.android.domain.repository.TaskRepository
 import com.example.doggitoapp.android.data.local.dao.StreakDao
 import com.example.doggitoapp.android.data.sync.DataPullManager
+import com.example.doggitoapp.android.core.util.awaitUserId
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -46,11 +46,13 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private val userId: String
-        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
+    private var userId: String = "local_user"
 
     init {
-        loadData()
+        viewModelScope.launch {
+            userId = supabaseClient.awaitUserId()
+            loadData()
+        }
     }
 
     /**

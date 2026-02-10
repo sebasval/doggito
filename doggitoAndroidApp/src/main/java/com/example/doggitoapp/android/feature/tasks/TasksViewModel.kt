@@ -11,8 +11,8 @@ import com.example.doggitoapp.android.domain.model.TaskCategory
 import com.example.doggitoapp.android.domain.model.TransactionType
 import com.example.doggitoapp.android.domain.repository.CoinRepository
 import com.example.doggitoapp.android.domain.repository.TaskRepository
+import com.example.doggitoapp.android.core.util.awaitUserId
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -41,14 +41,16 @@ class TasksViewModel(
     private val _uiState = MutableStateFlow(TasksUiState())
     val uiState: StateFlow<TasksUiState> = _uiState.asStateFlow()
 
-    private val userId: String
-        get() = supabaseClient.auth.currentUserOrNull()?.id ?: "local_user"
+    private var userId: String = "local_user"
     private val today = DateUtils.todayStartMillis()
 
     private var countdownJob: Job? = null
 
     init {
-        loadTasks()
+        viewModelScope.launch {
+            userId = supabaseClient.awaitUserId()
+            loadTasks()
+        }
     }
 
     private fun loadTasks() {
