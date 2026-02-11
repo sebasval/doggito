@@ -263,7 +263,7 @@ private fun OtpStep(
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(
-        text = "Enviamos un codigo de 6 digitos a:",
+        text = "Enviamos un codigo de verificacion a:",
         style = MaterialTheme.typography.bodyMedium,
         color = TextSecondary,
         textAlign = TextAlign.Center
@@ -280,7 +280,7 @@ private fun OtpStep(
 
     OutlinedTextField(
         value = otpCode,
-        onValueChange = { if (it.length <= 6) onOtpChange(it) },
+        onValueChange = { if (it.all { c -> c.isDigit() }) onOtpChange(it) },
         label = { Text("Codigo de verificacion") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
@@ -289,7 +289,7 @@ private fun OtpStep(
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
             fontSize = 24.sp,
-            letterSpacing = 8.sp
+            letterSpacing = 4.sp
         )
     )
 
@@ -302,7 +302,7 @@ private fun OtpStep(
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp),
-        enabled = otpCode.length == 6 && !isLoading,
+        enabled = otpCode.length >= 6 && !isLoading,
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
     ) {
