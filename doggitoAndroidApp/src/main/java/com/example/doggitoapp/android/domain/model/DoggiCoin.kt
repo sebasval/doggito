@@ -4,7 +4,8 @@ enum class TransactionType(val displayName: String) {
     TASK("Tarea completada"),
     RUNNING("Actividad física"),
     STREAK_BONUS("Bonificación de racha"),
-    REDEMPTION("Canje de producto")
+    REDEMPTION("Canje de producto"),
+    PROMO("Promoción")
 }
 
 data class CoinTransaction(

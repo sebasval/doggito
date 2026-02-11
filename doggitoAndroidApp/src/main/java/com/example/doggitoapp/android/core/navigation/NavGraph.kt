@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.doggitoapp.android.feature.promo.ClaimCoinsScreen
 import com.example.doggitoapp.android.feature.auth.ForgotPasswordScreen
 import com.example.doggitoapp.android.feature.auth.LoginScreen
 import com.example.doggitoapp.android.feature.auth.RegisterScreen
@@ -233,6 +234,28 @@ fun DoggitoNavGraph(
         ) { backStackEntry ->
             val storeId = backStackEntry.arguments?.getString("storeId") ?: ""
             StoreDetailScreen(storeId = storeId, onBack = { navController.popBackStack() })
+        }
+
+        // Promo - Claim Coins
+        composable(
+            Screen.ClaimCoins.route,
+            arguments = listOf(
+                navArgument("promoId") { type = NavType.StringType },
+                navArgument("amount") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val promoId = backStackEntry.arguments?.getString("promoId") ?: ""
+            val amount = backStackEntry.arguments?.getInt("amount") ?: 0
+            ClaimCoinsScreen(
+                promoId = promoId,
+                amount = amount,
+                onBack = { navController.popBackStack() },
+                onGoHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         // Settings

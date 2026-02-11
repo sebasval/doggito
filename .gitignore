@@ -8,3 +8,7 @@ captures
 .cxx
 local.properties
 xcuserdata
+
+# Firebase service account keys (NEVER commit)
+*-firebase-adminsdk-*.json
+*serviceAccountKey*.json

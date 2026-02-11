@@ -1,5 +1,6 @@
 package com.example.doggitoapp.android.di
 
+import com.example.doggitoapp.android.core.service.FcmTokenManager
 import com.example.doggitoapp.android.core.util.NetworkMonitor
 import com.example.doggitoapp.android.data.remote.SupabaseClientProvider
 import com.example.doggitoapp.android.data.sync.DataPullManager
@@ -11,4 +12,5 @@ val networkModule = module {
     single { SupabaseClientProvider.client }
     single { NetworkMonitor(androidContext()) }
     single { DataPullManager(get(), get(), get(), get(), get(), get(), get(), androidApplication()) }
+    single { FcmTokenManager(get()) }
 }

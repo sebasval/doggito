@@ -52,6 +52,11 @@ sealed class Screen(val route: String) {
         fun createRoute(storeId: String) = "stores/$storeId"
     }
 
+    // Promo
+    data object ClaimCoins : Screen("promo/claim/{promoId}/{amount}") {
+        fun createRoute(promoId: String, amount: Int) = "promo/claim/$promoId/$amount"
+    }
+
     // Settings
     data object Settings : Screen("settings")
 

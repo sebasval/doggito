@@ -14,6 +14,7 @@ import com.example.doggitoapp.android.MainActivity
 
 object NotificationHelper {
 
+    const val EXTRA_DEEP_LINK = "deep_link"
     private var nextNotificationId = 2000
 
     fun showTaskReminder(context: Context, taskTitle: String) {
@@ -66,12 +67,41 @@ object NotificationHelper {
         )
     }
 
+    /**
+     * Muestra una notificacion push recibida de FCM con soporte para deep links.
+     * @param deepLink Ruta de navegacion (ej: "shop/abc123", "home", "redeem/history")
+     * @param channel Canal: "rewards", "reminders", o "location"
+     */
+    fun showPushNotification(
+        context: Context,
+        title: String,
+        body: String,
+        deepLink: String? = null,
+        channel: String = "rewards"
+    ) {
+        val channelId = when (channel) {
+            "reminders" -> DoggitoApp.CHANNEL_REMINDERS
+            "location" -> DoggitoApp.CHANNEL_LOCATION
+            else -> DoggitoApp.CHANNEL_REWARDS
+        }
+
+        showNotification(
+            context = context,
+            channelId = channelId,
+            title = title,
+            body = body,
+            icon = android.R.drawable.ic_menu_send,
+            deepLink = deepLink
+        )
+    }
+
     private fun showNotification(
         context: Context,
         channelId: String,
         title: String,
         body: String,
-        icon: Int
+        icon: Int,
+        deepLink: String? = null
     ) {
         // Check permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -80,9 +110,17 @@ object NotificationHelper {
             ) return
         }
 
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            if (deepLink != null) {
+                putExtra(EXTRA_DEEP_LINK, deepLink)
+            }
+        }
+
         val pendingIntent = PendingIntent.getActivity(
-            context, 0,
-            Intent(context, MainActivity::class.java),
+            context,
+            nextNotificationId, // Unique request code per notification
+            intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
@@ -92,7 +130,12 @@ object NotificationHelper {
             .setContentText(body)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(
+                if (channelId == DoggitoApp.CHANNEL_REWARDS)
+                    NotificationCompat.PRIORITY_HIGH
+                else
+                    NotificationCompat.PRIORITY_DEFAULT
+            )
             .build()
 
         try {

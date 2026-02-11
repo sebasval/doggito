@@ -1,7 +1,9 @@
 package com.example.doggitoapp.android.feature.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.doggitoapp.android.core.service.FcmTokenManager
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.OtpType
 import io.github.jan.supabase.gotrue.SessionStatus
@@ -26,7 +28,8 @@ data class AuthUiState(
 )
 
 class AuthViewModel(
-    private val supabaseClient: SupabaseClient
+    private val supabaseClient: SupabaseClient,
+    private val fcmTokenManager: FcmTokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -49,6 +52,12 @@ class AuthViewModel(
                         isCheckingSession = false,
                         userId = status.session.user?.id
                     )
+                    // Registrar token FCM al recuperar sesion
+                    try {
+                        fcmTokenManager.registerToken()
+                    } catch (e: Exception) {
+                        Log.w("AuthViewModel", "No se pudo registrar FCM token", e)
+                    }
                 }
                 else -> {
                     _uiState.value = _uiState.value.copy(isCheckingSession = false)
@@ -71,6 +80,12 @@ class AuthViewModel(
                     isLoggedIn = true,
                     userId = userId
                 )
+                // Registrar token FCM despues de login exitoso
+                try {
+                    fcmTokenManager.registerToken()
+                } catch (e: Exception) {
+                    Log.w("AuthViewModel", "No se pudo registrar FCM token post-login", e)
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -106,6 +121,10 @@ class AuthViewModel(
     fun logout() {
         viewModelScope.launch {
             try {
+                // Eliminar token FCM antes de cerrar sesion
+                try {
+                    fcmTokenManager.unregisterToken()
+                } catch (_: Exception) { }
                 supabaseClient.auth.signOut()
                 _uiState.value = AuthUiState()
             } catch (_: Exception) {
