@@ -28,6 +28,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -141,6 +142,19 @@ fun LoginScreen(
                         } else {
                             Text("Iniciar Sesion", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextButton(
+                        onClick = onNavigateToForgotPassword,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            "Olvidaste tu contrasena?",
+                            color = DoggitoGreen,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                 }
             }

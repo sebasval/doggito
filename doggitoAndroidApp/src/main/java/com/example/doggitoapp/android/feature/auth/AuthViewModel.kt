@@ -3,9 +3,11 @@ package com.example.doggitoapp.android.feature.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.gotrue.OtpType
 import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.gotrue.user.UserUpdateBuilder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +19,10 @@ data class AuthUiState(
     val isCheckingSession: Boolean = true,
     val error: String? = null,
     val isLoggedIn: Boolean = false,
-    val userId: String? = null
+    val userId: String? = null,
+    val resetEmailSent: Boolean = false,
+    val otpVerified: Boolean = false,
+    val passwordUpdated: Boolean = false
 )
 
 class AuthViewModel(
@@ -107,6 +112,79 @@ class AuthViewModel(
                 _uiState.value = AuthUiState()
             }
         }
+    }
+
+    fun resetPassword(email: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                supabaseClient.auth.resetPasswordForEmail(email)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    resetEmailSent = true
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Error al enviar el correo de recuperación"
+                )
+            }
+        }
+    }
+
+    fun verifyRecoveryOtp(email: String, token: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                supabaseClient.auth.verifyEmailOtp(
+                    type = OtpType.Email.RECOVERY,
+                    email = email,
+                    token = token
+                )
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    otpVerified = true
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Codigo incorrecto o expirado"
+                )
+            }
+        }
+    }
+
+    fun updatePassword(newPassword: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                supabaseClient.auth.updateUser {
+                    password = newPassword
+                }
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    passwordUpdated = true
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Error al actualizar la contrasena"
+                )
+            }
+        }
+    }
+
+    fun clearResetState() {
+        _uiState.value = _uiState.value.copy(
+            resetEmailSent = false,
+            otpVerified = false,
+            passwordUpdated = false,
+            error = null
+        )
+    }
+
+    fun clearResetEmailSent() {
+        _uiState.value = _uiState.value.copy(resetEmailSent = false)
     }
 
     fun clearError() {
