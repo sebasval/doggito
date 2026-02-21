@@ -171,24 +171,18 @@ fun LoginScreen(
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
+
+                    TextButton(
+                        onClick = onNavigateToRegister,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Text(
+                            "No tienes cuenta? Registrate",
+                            color = TextSecondary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(onClick = onNavigateToRegister) {
-                Text(
-                    "No tienes cuenta? Registrate",
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-            }
-
-            TextButton(onClick = onLoginSuccess) {
-                Text(
-                    "Continuar sin cuenta (modo offline)",
-                    color = Color.White.copy(alpha = 0.5f),
-                    style = MaterialTheme.typography.bodySmall
-                )
             }
         }
     }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,7 +15,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,7 +39,6 @@ fun RunningActiveScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var selectedMode by remember { mutableStateOf(RunningMode.valueOf(mode)) }
     var hasStarted by remember { mutableStateOf(false) }
     var elapsedTime by remember { mutableLongStateOf(0L) }
     val isTracking by LocationTrackingService.isTracking.collectAsState()
@@ -47,13 +49,12 @@ fun RunningActiveScreen(
     ) { permissions ->
         val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
         if (fineGranted && !hasStarted) {
-            viewModel.startSession(selectedMode)
+            viewModel.startSession(RunningMode.RUN)
             context.startService(Intent(context, LocationTrackingService::class.java))
             hasStarted = true
         }
     }
 
-    // Timer
     LaunchedEffect(hasStarted) {
         if (hasStarted) {
             while (true) {
@@ -63,148 +64,145 @@ fun RunningActiveScreen(
         }
     }
 
-    DoggitoGradientBackground {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Actividad",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        if (hasStarted) {
+                            context.stopService(Intent(context, LocationTrackingService::class.java))
+                            viewModel.finishSession()
+                        }
+                        onFinish()
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+                    }
+                },
+                actions = {
+                    TextButton(onClick = onViewHistory) {
+                        Text("Historial", color = MaterialTheme.colorScheme.primary)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(24.dp),
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Top bar
-            Row(
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Animacion de perrito
+            DogAnimation(isRunning = hasStarted)
+
+            // Metricas en card
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = CardSurface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                IconButton(onClick = {
-                    if (hasStarted) {
-                        context.stopService(Intent(context, LocationTrackingService::class.java))
-                        viewModel.finishSession()
-                    }
-                    onFinish()
-                }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
-                }
-                Text(
-                    "Actividad",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                TextButton(onClick = onViewHistory) {
-                    Text("Historial", color = Color.White.copy(alpha = 0.8f))
-                }
-            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Distancia principal
+                    Text(
+                        DateUtils.formatDistance(distance),
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DoggitoGreenDark
+                    )
+                    Text(
+                        "distancia",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary
+                    )
 
-            // Mode selector chips (only before starting)
-            if (!hasStarted) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
-                ) {
-                    RunningMode.entries.forEach { runMode ->
-                        FilterChip(
-                            selected = selectedMode == runMode,
-                            onClick = { selectedMode = runMode },
-                            label = { Text(runMode.displayName, fontWeight = FontWeight.Medium) },
-                            leadingIcon = {
-                                Icon(
-                                    when (runMode) {
-                                        RunningMode.WALK -> Icons.Default.DirectionsWalk
-                                        RunningMode.RUN -> Icons.Default.DirectionsRun
-                                        RunningMode.HIKE -> Icons.Default.Terrain
-                                    },
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color.White.copy(alpha = 0.25f),
-                                selectedLabelColor = Color.White,
-                                selectedLeadingIconColor = Color.White,
-                                containerColor = Color.White.copy(alpha = 0.1f),
-                                labelColor = Color.White.copy(alpha = 0.7f),
-                                iconColor = Color.White.copy(alpha = 0.7f)
-                            ),
-                            border = null
-                        )
-                    }
-                }
-            } else {
-                // Active mode indicator
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.15f)
-                ) {
+                    Spacer(Modifier.height(24.dp))
+
+                    Divider(color = DoggitoGreenLight.copy(alpha = 0.3f))
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // Metricas secundarias
                     Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Icon(
-                            when (selectedMode) {
-                                RunningMode.WALK -> Icons.Default.DirectionsWalk
-                                RunningMode.RUN -> Icons.Default.DirectionsRun
-                                RunningMode.HIKE -> Icons.Default.Terrain
-                            },
-                            null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
+                        MetricColumn(
+                            label = "Tiempo",
+                            value = DateUtils.formatTime(if (hasStarted) elapsedTime else 0L),
+                            color = TextPrimary
                         )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            if (isTracking) "En curso..." else "Esperando GPS...",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium
+                        MetricColumn(
+                            label = "Velocidad",
+                            value = if (elapsedTime > 0) {
+                                val speedKmh = (distance / 1000f) / (elapsedTime / 3600000f)
+                                String.format("%.1f km/h", speedKmh)
+                            } else "0.0 km/h",
+                            color = TextPrimary
                         )
+                        MetricColumn(
+                            label = "DoggiCoins",
+                            value = "+${(distance / 100f).toInt()}",
+                            color = DoggiCoinGold
+                        )
+                    }
+
+                    if (hasStarted) {
+                        Spacer(Modifier.height(16.dp))
+
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isTracking)
+                                SuccessGreen.copy(alpha = 0.1f)
+                            else
+                                WarningAmber.copy(alpha = 0.1f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    if (isTracking) Icons.Default.GpsFixed else Icons.Default.GpsNotFixed,
+                                    null,
+                                    tint = if (isTracking) SuccessGreen else WarningAmber,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    if (isTracking) "GPS activo" else "Buscando GPS...",
+                                    color = if (isTracking) SuccessGreen else WarningAmber,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            // Main metrics
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    DateUtils.formatDistance(distance),
-                    fontSize = 64.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    "distancia",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(Modifier.height(32.dp))
-
-                // Secondary metrics
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    MetricColumn(
-                        label = "Tiempo",
-                        value = DateUtils.formatTime(if (hasStarted) elapsedTime else 0L),
-                        color = Color.White
-                    )
-                    MetricColumn(
-                        label = "Velocidad",
-                        value = if (elapsedTime > 0) {
-                            val speedKmh = (distance / 1000f) / (elapsedTime / 3600000f)
-                            String.format("%.1f km/h", speedKmh)
-                        } else "0.0 km/h",
-                        color = Color.White
-                    )
-                    MetricColumn(
-                        label = "DoggiCoins",
-                        value = "+${(distance / 100f).toInt()}",
-                        color = DoggitoAmberLight
-                    )
-                }
-            }
-
-            // Bottom action - large and thumb-friendly
+            // Boton de accion
             if (!hasStarted) {
                 Button(
                     onClick = {
@@ -219,19 +217,23 @@ fun RunningActiveScreen(
                         .fillMaxWidth()
                         .height(64.dp),
                     shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                    colors = ButtonDefaults.buttonColors(containerColor = DoggitoGreen)
                 ) {
-                    Icon(Icons.Default.PlayArrow, null, tint = DoggitoGreenDark, modifier = Modifier.size(28.dp))
+                    Icon(
+                        Icons.Default.PlayArrow,
+                        null,
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "Iniciar ${selectedMode.displayName}",
+                        "Iniciar carrera",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = DoggitoGreenDark
+                        color = Color.White
                     )
                 }
             } else {
-                // Stop button - large circular, easy to reach with thumb
                 Button(
                     onClick = {
                         context.stopService(Intent(context, LocationTrackingService::class.java))
@@ -245,6 +247,98 @@ fun RunningActiveScreen(
                     Icon(Icons.Default.Stop, "Detener", modifier = Modifier.size(40.dp))
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun DogAnimation(isRunning: Boolean) {
+    val infiniteTransition = rememberInfiniteTransition(label = "dog")
+
+    if (isRunning) {
+        // Perrito corriendo: movimiento horizontal + rebote vertical
+        val offsetX by infiniteTransition.animateFloat(
+            initialValue = -15f,
+            targetValue = 15f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(600, easing = EaseInOutCubic),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "runX"
+        )
+        val offsetY by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = -12f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(300, easing = EaseInOutCubic),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "runY"
+        )
+        val tilt by infiniteTransition.animateFloat(
+            initialValue = -8f,
+            targetValue = 8f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(600, easing = EaseInOutCubic),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "tilt"
+        )
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.Pets,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .graphicsLayer {
+                        translationX = offsetX
+                        translationY = offsetY
+                    }
+                    .rotate(tilt),
+                tint = DoggitoGreen
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Corriendo...",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = DoggitoGreenDark
+            )
+        }
+    } else {
+        // Perrito en reposo: respiracion suave
+        val breathScale by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.08f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1500, easing = EaseInOutCubic),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "breath"
+        )
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.Pets,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .graphicsLayer {
+                        scaleX = breathScale
+                        scaleY = breathScale
+                    },
+                tint = DoggitoGreen.copy(alpha = 0.7f)
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Listo para correr",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = TextSecondary
+            )
         }
     }
 }
@@ -261,7 +355,7 @@ private fun MetricColumn(label: String, value: String, color: Color) {
         Text(
             label,
             style = MaterialTheme.typography.bodySmall,
-            color = color.copy(alpha = 0.7f)
+            color = TextSecondary
         )
     }
 }
