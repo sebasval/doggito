@@ -12,3 +12,7 @@ xcuserdata
 # Firebase service account keys (NEVER commit)
 *-firebase-adminsdk-*.json
 *serviceAccountKey*.json
+
+# Release keystore (NEVER commit)
+*.keystore
+*.jks

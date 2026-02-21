@@ -11,11 +11,19 @@ android {
     namespace = "com.example.doggitoapp.android"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.example.doggitoapp.android"
+        applicationId = "com.doggito.app"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+    }
+    signingConfigs {
+        create("release") {
+            storeFile = file("../doggito-release.keystore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "D0gg1t0R3l3as3!2026"
+            keyAlias = "doggito"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "D0gg1t0R3l3as3!2026"
+        }
     }
     buildFeatures {
         compose = true
@@ -27,7 +35,13 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -90,10 +104,8 @@ dependencies {
     // WorkManager
     implementation(libs.work.runtime.ktx)
 
-    // Location & Maps
+    // Location
     implementation(libs.play.services.location)
-    implementation(libs.play.services.maps)
-    implementation(libs.maps.compose)
 
     // Images
     implementation(libs.coil.compose)

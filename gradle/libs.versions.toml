@@ -2,8 +2,8 @@
 agp = "8.8.0"
 kotlin = "2.0.0"
 ksp = "2.0.0-1.0.21"
-compose = "1.5.4"
-compose-material3 = "1.1.2"
+compose = "1.6.8"
+compose-material3 = "1.2.1"
 androidx-activityCompose = "1.8.0"
 
 # Architecture

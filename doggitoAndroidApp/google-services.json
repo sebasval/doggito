@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:1047058096758:android:50b55bc3cfbe4f07b97557",
+        "android_client_info": {
+          "package_name": "com.doggito.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl-iv-Kb9uOssSJ2XPv0b72O_1-nsyudk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:1047058096758:android:41dc57404419eac2b97557",
         "android_client_info": {
           "package_name": "com.example.doggitoapp.android"
